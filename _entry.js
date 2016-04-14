@@ -18,7 +18,11 @@ global.ApplicationError = function() {
    Error.captureStackTrace(this, this.constructor);
    this.name = 'ApplicationError';
    var args = [].slice.call(arguments);
-   this.message = JSON.stringify(args);
+   if (args.length === 1) {
+      this.message = args[0].toString();
+   } else {
+      this.message = args.toString();
+   }
 }
 
 global.ValidationError = function() {
@@ -26,7 +30,11 @@ global.ValidationError = function() {
    Error.captureStackTrace(this, this.constructor);
    this.name = 'ValidationError';
    var args = [].slice.call(arguments);
-   this.message = JSON.stringify(args);
+   if (args.length === 1) {
+      this.message = args[0].toString();
+   } else {
+      this.message = args.toString();
+   }
 }
 
 // logging
@@ -110,7 +118,7 @@ module.exports = supervisor.init().then(function() {
    return supervisor;
 }).catch(function(err) {
    if (!err.name) {
-      logger.error(err);      
+      logger.error(err);
    } else if (lodash.includes(['TypeError'], err.name)) {
       logger.error(err);
    } else if (lodash.includes(['ValidationError', 'ApplicationError', 'AssertionError'], err.name)) {
