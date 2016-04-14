@@ -1,7 +1,8 @@
 
 ## libv
 
-This is a reference implementation "supervisor" library for a component spec as per https://github.com/evanx/component-validator
+This is a reference implementation "supervisor" library for a component spec:
+- https://github.com/evanx/component-validator
 
 For example, it is used the following projects: 
 - https://github.com/evanx/rjquery
