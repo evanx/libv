@@ -22,7 +22,11 @@ function isValid(meta, value) {
       return lodash.isBoolean(value);
    } else if (meta.type === 'object') {
       return Object.keys(value).length;
+   } else if (lodash.isString(meta.defaultValue) && lodash.isString(value)) {
+      return true;
    } else if (meta.defaultValue > 0 && value > 0) {
+      return true;
+   } else if (lodash.isArray(meta.defaultValue) && lodash.isArray(value)) {
       return true;
    } else {
       return false;
