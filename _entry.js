@@ -11,7 +11,7 @@ global.fs = require('fs');
 global.http = require('http');
 global.lodash = require('lodash');
 global.os = require('os');
-global.redisl = require('redis');
+global.redisLib = require('redis');
 
 global.ApplicationError = function() {
    this.constructor.prototype.__proto__ = Error.prototype;
@@ -55,9 +55,9 @@ var logger = global.bunyan.createLogger({name: config.loggerName, level: config.
 
 // redis
 
-bluebird.promisifyAll(redisl.RedisClient.prototype);
-bluebird.promisifyAll(redisl.Multi.prototype);
-redisl.RedisClient.prototype.multiExecAsync = function(fn) {
+bluebird.promisifyAll(redisLib.RedisClient.prototype);
+bluebird.promisifyAll(redisLib.Multi.prototype);
+redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
    var multi = this.multi();
    fn(multi);
    return multi.execAsync();
