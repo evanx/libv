@@ -10,3 +10,5 @@ state:
    components: {}
    startTimestamp: {}
    ended: false
+   scheduledTimeouts: {}
+   scheduledIntervals: {}

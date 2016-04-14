@@ -16,7 +16,14 @@ export default class Supervisor {
             logger.warn('config.component', componentName);
          }
       }
-      logger.info('initedComponents', initedComponents.length);
+      await this.startComponents();
+      await this.scheduleComponents();
+      logger.info('components', Object.keys(components));
+      logger.info('inited');
+   }
+
+   async startComponents() {
+      logger.info('startComponents', initedComponents.length);
       for (const component of [... initedComponents]) {
          if (component.start) {
             assert(lodash.isFunction(component.start), 'start function: ' + component.name);
@@ -24,8 +31,6 @@ export default class Supervisor {
             await component.start();
          }
       }
-      logger.info('components', Object.keys(components));
-      logger.info('inited');
    }
 
    async initComponent(componentName, componentModule, componentConfig) { // TODO support external modules
@@ -33,10 +38,16 @@ export default class Supervisor {
       logger.info('initComponent', componentName, componentModule, componentConfig);
       const meta = CsonFiles.readFileSync(componentModule + '.cson'); // TODO support external modules
       componentConfig = Object.assign(Metas.getDefault(meta.config), componentConfig);
+      logger.debug('config', componentName, meta.config, componentConfig);
+      const errorKeys = Metas.getErrorKeys(meta.config, componentConfig);
+      if (errorKeys.length) {
+         throw new ValidationError('config: ' + errorKeys.join(' '));
+      }
       const componentState = Object.assign({
-         components: components,
          config: componentConfig,
-         logger: Loggers.createLogger(componentName, componentConfig.loggerLevel || config.loggerLevel)
+         logger: Loggers.createLogger(componentName, componentConfig.loggerLevel || config.loggerLevel),
+         supervisor: this,
+         components: components
       }, meta.state);
       componentModule = ClassPreprocessor.buildSync(componentModule + '.js', Object.keys(componentState));
       const componentClass = require('.' + componentModule).default; // TODO support external modules
@@ -50,6 +61,51 @@ export default class Supervisor {
       initedComponents.push(component);
       components[componentName] = component;
       logger.info('initComponents components', componentName, Object.keys(components));
+   }
+
+   async scheduleComponents() {
+      logger.debug('scheduleComponents length', Object.keys(components));
+      for (const component of [... initedComponents]) {
+         logger.debug('scheduleComponents component', component.name, Object.keys(component.config));
+         if (component.config.scheduledTimeout) {
+            this.scheduleComponentTimeout(component);
+         }
+         if (component.config.scheduledInterval) {
+            this.scheduleComponentInterval(component);
+         }
+      }
+   }
+
+   scheduleComponentTimeout(component) {
+      assert(component.config.scheduledTimeout > 0, 'component.config.scheduledTimeout');
+      assert(lodash.isFunction(component.scheduledTimeout), 'scheduledTimeout function: ' + component.name);
+      this.scheduledTimeouts[component.name] = setTimeout(async () => {
+         try {
+            await component.scheduledTimeout();
+         } catch (err) {
+            if (component.config.scheduledTimeoutWarn) {
+               logger.warn(err, component.name, component.config);
+            } else {
+               this.error(err, component);
+            }
+         }
+      }, component.config.scheduledTimeout);
+   }
+
+   scheduleComponentInterval(component) {
+      assert(component.config.scheduledInterval > 0, 'component.config.scheduledInterval');
+      assert(lodash.isFunction(component.scheduledInterval), 'scheduledInterval function: ' + component.name);
+      this.scheduledIntervals[component.name] = setInterval(async () => {
+         try {
+            await component.scheduledInterval();
+         } catch (err) {
+            if (component.config.scheduledIntervalWarn) {
+               logger.warn(err, component.name, component.config);
+            } else {
+               this.error(err, component);
+            }
+         }
+      }, component.config.scheduledInterval);
    }
 
    async start() {

@@ -16,7 +16,7 @@ global.redisl = require('redis');
 global.ApplicationError = function() {
    this.constructor.prototype.__proto__ = Error.prototype;
    Error.captureStackTrace(this, this.constructor);
-   this.name = this.constructor.name;
+   this.name = 'ApplicationError';
    var args = [].slice.call(arguments);
    this.message = JSON.stringify(args);
 }
@@ -24,7 +24,7 @@ global.ApplicationError = function() {
 global.ValidationError = function() {
    this.constructor.prototype.__proto__ = Error.prototype;
    Error.captureStackTrace(this, this.constructor);
-   this.name = this.constructor.name;
+   this.name = 'ValidationError';
    var args = [].slice.call(arguments);
    this.message = JSON.stringify(args);
 }
@@ -101,18 +101,22 @@ if (/\Wicp\W/.test(supervisorMeta.spec)) { // TODO babel class transform, rather
 var Supervisor = require('../build/Supervisor').default;
 var supervisor = new Supervisor();
 Object.assign(supervisor, Object.assign({logger: logger, config: supervisorMeta.config}, supervisorMeta.state));
-supervisor.init().then(function() {
+module.exports = supervisor.init().then(function() {
    logger.info('started pid', process.pid);
    process.on('SIGTERM', function() {
       logger.info('SIGTERM')
       supervisor.end();
    });
-   setTimeout(function() {
-      supervisor.end();
-   }, 2000);
+   return supervisor;
 }).catch(function(err) {
-   logger.error(err);
-   setTimeout(function() {
-      supervisor.end();
-   }, 4000);
+   if (!err.name) {
+      logger.error(err);      
+   } else if (lodash.includes(['TypeError'], err.name)) {
+      logger.error(err);
+   } else if (lodash.includes(['ValidationError', 'ApplicationError', 'AssertionError'], err.name)) {
+      logger.error(err.message);
+   } else {
+      logger.error(err);
+   }
+   supervisor.end();
 });

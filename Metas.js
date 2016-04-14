@@ -1,14 +1,14 @@
 
 export function pickEnv(meta, env) {
    const result = {};
-   Object.keys(meta.props).filter(key => env.hasOwnProperty(key))
+   Object.keys(meta).filter(key => env.hasOwnProperty(key))
    .forEach(key => result[key] = env[key]);
    return result;
 }
 
 
 export function getErrorKeys(meta, props) {
-   return Object.keys(meta.props).filter(key => !isValid(meta.props[key], props[key]));
+   return Object.keys(meta).filter(key => !isValid(meta[key], props[key]));
 }
 
 function isValid(meta, value) {
@@ -22,6 +22,8 @@ function isValid(meta, value) {
       return lodash.isBoolean(value);
    } else if (meta.type === 'object') {
       return Object.keys(value).length;
+   } else if (meta.defaultValue > 0 && value > 0) {
+      return true;
    } else {
       return false;
    }
