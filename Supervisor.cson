@@ -1,12 +1,11 @@
-spec: 'component-validator/supervisor#0.1.2',
+spec: 'component-validator/supervisor?icp#0.1.2',
 config:
    redisUrl:
       type: 'string'
    redisKeyspace:
       type: 'string'
 state:
-   requiredComponents:
-      express: './src/ExpressComponent'      
+   requiredComponents: []
    initedComponents: []
    components: {}
    startTimestamp: {}

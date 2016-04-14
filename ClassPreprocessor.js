@@ -18,7 +18,7 @@ export function buildSync(sourceFile, names) { // regex this dereferencing on na
    logger.debug('source', sourceCode.length);
    const regex = `([^a-z\\.'])(${names.join('|')})([^a-z:'])`;
    const replace = `\$1this.\$2$3`;
-   logger.debug('buildSync regex', names, regex, replace);
+   logger.ndebug('buildSync regex', regex, replace);
    const translatedCode = sourceCode.replace(new RegExp(regex, 'g'), replace);
    logger.ndebug('source', translatedCode);
    fs.writeFileSync(targetFile, translatedCode);
