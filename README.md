@@ -1,30 +1,11 @@
 
 ## libv
 
+This is a reference implementation "supervisor" library for a component spec:
+- https://github.com/evanx/component-validator
 
-
-### Status
-
-DESIGN STAGE - UNIMPLEMENTED
-
-
-### Implementation
-
-
-### Configuration
-
-### Installation
-
-```shell
-git clone https://github.com/evanx/libv &&
-  cd libv &&
-  npm install
-```
-
-Let's run the demo.
-```shell
-npm run demo
-```
+For example, it is used by the following projects: 
+- https://github.com/evanx/rquery
 
 ### Further reading
 
