@@ -5,7 +5,7 @@ This is a reference implementation "supervisor" library for a component spec:
 - https://github.com/evanx/component-validator
 
 For example, it is used the following projects: 
-- https://github.com/evanx/rjquery
+- https://github.com/evanx/rquery
 
 ### Further reading
 
