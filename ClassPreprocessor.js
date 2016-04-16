@@ -2,14 +2,17 @@
 import fs from 'fs';
 import mkdirp from 'mkdirp';
 import pathl from 'path';
+import * as Files from './Files';
 
 const logger = Loggers.createLogger(module.filename, 'debug');
 
-export function buildSync(sourceFile, names) { // regex this dereferencing on names
+export async function buildSync(sourceFile, names) { // regex this dereferencing on names
    if (!/^\.\//.test(sourceFile)) {
       throw 'unsupported: ' + sourceFile;
    }
-   const targetFile = sourceFile.replace(/^(\.\/[a-z]*)\//, './build/');
+   const buildDir = './build/';
+   await Files.mkdirp(buildDir);
+   const targetFile = sourceFile.replace(/^(\.\/[a-z]*)\//, buildDir);
    sourceFile = sourceFile.replace(/^./, module.filename.replace(/\/lib\/\w*\.js/, ''));
    if (!/\.js$/.test(sourceFile)) {
       sourceFile = sourceFile + '.js';

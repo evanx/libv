@@ -49,7 +49,7 @@ export default class Supervisor {
          supervisor: this,
          components: components
       }, meta.state);
-      componentModule = ClassPreprocessor.buildSync(componentModule + '.js', Object.keys(componentState));
+      componentModule = await ClassPreprocessor.buildSync(componentModule + '.js', Object.keys(componentState));
       const componentClass = require('.' + componentModule).default; // TODO support external modules
       const component = new componentClass();
       logger.info('initComponents state', componentName, Object.keys(componentState));
