@@ -15,7 +15,7 @@ function assignLibs(g) {
    g.redisLib = require('redis');
 }
 
-function assignError(g) {
+function assignErrors(g) {
    g.ApplicationError = function() {
       this.constructor.prototype.__proto__ = Error.prototype;
       Error.captureStackTrace(this, this.constructor);
