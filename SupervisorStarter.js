@@ -81,15 +81,30 @@ assignDeps(global);
 
 // supervisor configuration
 
-function getSupervisorMeta() {
+function getComponentsConfig() {
    if (!process.env.configModule) {
       throw 'Specify configModule e.g. configModule=./demo/config.js, or try: npm run demo';
    }
+   const config = require('.' + process.env.configModule);
+   Object.keys(config).forEach(name => {
+      const componentConfig = config[name];
+      Object.keys(componentConfig).forEach(key => {
+         const envKey = name + '_' + key;
+         if (process.env[envKey]) {
+            componentConfig[key] = process.env[envKey];
+         }
+      });
+   });
+   return config;
+}
+
+function getSupervisorMeta() {
+   const componentsConfig = getComponentsConfig();
    const componentsMeta = CsonFiles.readFileSync('./components.cson');
    logger.debug('components.spec', componentsMeta.spec);
    Object.assign(config, {
       availableComponents: componentsMeta.components,
-      components: require('.' + process.env.configModule) // TODO support external module
+      components: componentsConfig // TODO support external module
    });
    return Object.assign(CsonFiles.readFileSync('./lib/Supervisor.cson'), {config: config});
 }
