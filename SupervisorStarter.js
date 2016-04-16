@@ -69,11 +69,15 @@ redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
 
 // dependencies
 
-global.Loggers = require('./Loggers');
-global.Asserts = require('./Asserts');
-global.CsonFiles = require('./CsonFiles');
-global.Metas = require('./Metas')
-global.ClassPreprocessor = require('./ClassPreprocessor');
+function assignDeps(g) {
+   g.Loggers = require('./Loggers');
+   g.Asserts = require('./Asserts');
+   g.CsonFiles = require('./CsonFiles');
+   g.Metas = require('./Metas')
+   g.ClassPreprocessor = require('./ClassPreprocessor');
+}
+
+assignDeps(global);
 
 // supervisor configuration
 
@@ -124,4 +128,3 @@ export async function startSupervisor() {
       supervisor.end();
    }
 }
-
