@@ -4,3 +4,7 @@ export function getRoutes(expressApp) {
    .filter(middleware => middleware.route)
    .map(middleware => middleware.route.path);
 }
+
+export function listen(expressApp, port) {
+   return Promises.promisify(callback => expressApp.listen(port, callback));
+}

@@ -74,6 +74,7 @@ function assignDeps(g) {
    g.Asserts = require('./Asserts');
    g.CsonFiles = require('./CsonFiles');
    g.Metas = require('./Metas')
+   g.Promises = require('./Promises')
    g.ClassPreprocessor = require('./ClassPreprocessor');
 }
 
@@ -131,7 +132,10 @@ export async function startSupervisor() {
          supervisor.end();
       });
    } catch(err) {
-      if (!err.name) {
+      logger.error('zz', Object.keys(err));
+      if (err.code) {
+         logger.error({err: err.message, code: err.code});
+      } else if (!err.name) {
          logger.error(err);
       } else if (lodash.includes(['TypeError'], err.name)) {
          logger.error(err);

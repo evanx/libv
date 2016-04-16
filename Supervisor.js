@@ -5,7 +5,7 @@ export default class Supervisor {
    }
 
    async init() {
-      logger.info('config.components', config.components.length);
+      logger.info('config.components', Object.keys(config.components));
       for (const componentName in config.components) {
          const componentConfig = config.components[componentName];
          if (componentConfig) {
