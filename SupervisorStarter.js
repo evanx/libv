@@ -3,39 +3,45 @@
 
 // globals
 
-global.assert = require('assert');
-global.bluebird = require('bluebird');
-global.bunyan = require('bunyan');
-global.crypto = require('crypto');
-global.fs = require('fs');
-global.http = require('http');
-global.lodash = require('lodash');
-global.os = require('os');
-global.redisLib = require('redis');
+function assignLibs(g) {
+   g.assert = require('assert');
+   g.bluebird = require('bluebird');
+   g.bunyan = require('bunyan');
+   g.crypto = require('crypto');
+   g.fs = require('fs');
+   g.http = require('http');
+   g.lodash = require('lodash');
+   g.os = require('os');
+   g.redisLib = require('redis');
+}
 
-global.ApplicationError = function() {
-   this.constructor.prototype.__proto__ = Error.prototype;
-   Error.captureStackTrace(this, this.constructor);
-   this.name = 'ApplicationError';
-   var args = [].slice.call(arguments);
-   if (args.length === 1) {
-      this.message = args[0].toString();
-   } else {
-      this.message = args.toString();
+function assignError(g) {
+   g.ApplicationError = function() {
+      this.constructor.prototype.__proto__ = Error.prototype;
+      Error.captureStackTrace(this, this.constructor);
+      this.name = 'ApplicationError';
+      var args = [].slice.call(arguments);
+      if (args.length === 1) {
+         this.message = args[0].toString();
+      } else {
+         this.message = args.toString();
+      }
+   }
+   g.ValidationError = function() {
+      this.constructor.prototype.__proto__ = Error.prototype;
+      Error.captureStackTrace(this, this.constructor);
+      this.name = 'ValidationError';
+      var args = [].slice.call(arguments);
+      if (args.length === 1) {
+         this.message = args[0].toString();
+      } else {
+         this.message = args.toString();
+      }
    }
 }
 
-global.ValidationError = function() {
-   this.constructor.prototype.__proto__ = Error.prototype;
-   Error.captureStackTrace(this, this.constructor);
-   this.name = 'ValidationError';
-   var args = [].slice.call(arguments);
-   if (args.length === 1) {
-      this.message = args[0].toString();
-   } else {
-      this.message = args.toString();
-   }
-}
+assignLibs(global);
+assignErrors(global);
 
 // logging
 
@@ -48,8 +54,6 @@ if (process.env.loggerLevel) {
 } else if (process.env.NODE_ENV === 'development') {
    config.loggerLevel = 'debug';
 }
-
-global.loggerLevel = config.loggerLevel;
 
 const logger = global.bunyan.createLogger({name: config.loggerName, level: config.loggerLevel})
 
@@ -120,10 +124,4 @@ export async function startSupervisor() {
       supervisor.end();
    }
 }
-
-
-
-
-
-
 
