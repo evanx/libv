@@ -132,8 +132,9 @@ export async function startSupervisor() {
          supervisor.end();
       });
    } catch(err) {
-      logger.error('zz', Object.keys(err));
-      if (err.code) {
+      if (err.errno) {
+         logger.error({err: err.message, errno: err.errno});
+      } else if (err.code) {
          logger.error({err: err.message, code: err.code});
       } else if (!err.name) {
          logger.error(err);
