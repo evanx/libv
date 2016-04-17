@@ -16,6 +16,8 @@ function isValid(meta, value) {
       return meta.optional;
    } else if (meta.type === 'string') {
       return typeof value === 'string';
+   } else if (meta.type === 'duration') {
+      return parseInt(value) === value;
    } else if (meta.type === 'integer') {
       return parseInt(value) === value;
    } else if (meta.type === 'boolean') {
