@@ -4,7 +4,7 @@ import mkdirp from 'mkdirp';
 import pathl from 'path';
 import * as Files from './Files';
 
-const logger = Loggers.createLogger(module.filename, 'debug');
+const logger = Loggers.create(module.filename, 'debug');
 
 export async function buildSync(sourceFile, names) { // regex this dereferencing on names
    if (!/^\.\//.test(sourceFile)) {

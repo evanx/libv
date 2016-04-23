@@ -45,7 +45,7 @@ export default class Supervisor {
       }
       const componentState = Object.assign({
          config: componentConfig,
-         logger: Loggers.createLogger(componentName, componentConfig.loggerLevel || config.loggerLevel),
+         logger: Loggers.create(componentName, componentConfig.loggerLevel || config.loggerLevel),
          supervisor: this,
          components: components
       }, meta.state);

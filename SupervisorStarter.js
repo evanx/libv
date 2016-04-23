@@ -26,7 +26,7 @@ function assignErrors(g) {
       } else {
          this.message = args.toString();
       }
-   }
+   };
    g.ValidationError = function() {
       this.constructor.prototype.__proto__ = Error.prototype;
       Error.captureStackTrace(this, this.constructor);
@@ -37,7 +37,7 @@ function assignErrors(g) {
       } else {
          this.message = args.toString();
       }
-   }
+   };
 }
 
 assignLibs(global);
@@ -53,6 +53,11 @@ if (process.env.loggerLevel) {
    config.loggerLevel = process.env.loggerLevel;
 } else if (process.env.NODE_ENV === 'development') {
    config.loggerLevel = 'debug';
+}
+
+global.loggerLevel = config.loggerLevel;
+if (process.env.loggerUrl) {
+   global.loggerUrl = process.env.loggerUrl;
 }
 
 const logger = global.bunyan.createLogger({name: config.loggerName, level: config.loggerLevel})
@@ -72,10 +77,11 @@ redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
 function assignDeps(g) {
    g.Loggers = require('./Loggers');
    g.Asserts = require('./Asserts');
-   g.CsonFiles = require('./CsonFiles');
-   g.Metas = require('./Metas')
-   g.Promises = require('./Promises')
    g.ClassPreprocessor = require('./ClassPreprocessor');
+   g.CsonFiles = require('./CsonFiles');
+   g.Metas = require('./Metas');
+   g.Promises = require('./Promises');
+   g.Requests = require('./Requests');
 }
 
 assignDeps(global);
