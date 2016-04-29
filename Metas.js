@@ -26,13 +26,13 @@ function isValid(meta, value) {
       return Object.keys(value).length;
    } else if (lodash.isString(meta.defaultValue) && lodash.isString(value)) {
       if (meta.regex) {
-         return new Regexp('^' + meta.regex + '$').test(value);
+         return new RegExp('^' + meta.regex + '$').test(value);
       } else {
          return true;
       }
    } else if (meta.defaultValue > 0 && value > 0) {
       if (meta.regex) {
-         return new Regexp('^' + meta.regex + '$').test(value);
+         return new RegExp('^' + meta.regex + '$').test(value);
       } else {
          return true;
       }
