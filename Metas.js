@@ -32,7 +32,7 @@ function isValid(meta, value) {
       }
    } else if (meta.defaultValue > 0 && value > 0) {
       if (meta.regex) {
-         return new RegExp('^' + meta.regex + '$').test(value);
+         return new RegExp('^' + meta.regex + '$').test('' + value);
       } else {
          return true;
       }
