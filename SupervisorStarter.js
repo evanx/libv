@@ -83,6 +83,7 @@ function assignDeps(g) {
    g.Millis = require('./Millis');
    g.Promises = require('./Promises');
    g.Requests = require('./Requests');
+   g.Values = require('./Values');
 }
 
 assignDeps(global);

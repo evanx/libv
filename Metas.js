@@ -1,4 +1,6 @@
 
+const logger = Loggers.create(__filename, 'info');
+
 export function pickEnv(meta, env) {
    const result = {};
    Object.keys(meta).filter(key => env.hasOwnProperty(key))
@@ -6,12 +8,12 @@ export function pickEnv(meta, env) {
    return result;
 }
 
-
 export function getErrorKeys(meta, props) {
    return Object.keys(meta).filter(key => !isValid(meta[key], props[key]));
 }
 
 function isValid(meta, value) {
+   logger.debug('isValid', value, meta);
    if (value === undefined) {
       return meta.optional;
    } else if (meta.type === 'string') {
@@ -26,6 +28,7 @@ function isValid(meta, value) {
       return Object.keys(value).length;
    } else if (lodash.isString(meta.defaultValue) && lodash.isString(value)) {
       if (meta.regex) {
+         logger.debug('isValid', meta, value);
          return new RegExp('^' + meta.regex + '$').test(value);
       } else {
          return true;
@@ -50,13 +53,6 @@ export function getDefault(meta) {
    .forEach(key => result[key] = meta[key].defaultValue);
    return result;
 }
-
-export function filterKeys(object, other, fn) {
-   return Object.keys(object).filter(key => {
-      return fn(key, object[key], other[key]);
-   });
-}
-
 
 // TODO integration the following
 
