@@ -22,7 +22,7 @@ function isValid(meta, value) {
       return parseInt(value) === value;
    } else if (meta.type === 'integer') {
       return parseInt(value) === value;
-   } else if (meta.type === 'boolean') {
+   } else if (meta.type === 'boolean' || lodash.isBoolean(meta.defaultValue)) {
       return lodash.isBoolean(value);
    } else if (meta.type === 'object') {
       return Object.keys(value).length;
