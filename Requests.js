@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Evan Summers (twitter.com/evanxsummers)
 // ISC license, see http://github.com/evanx/redexutil/LICENSE
 
+
 import requestf from 'request';
 
 const logger = Loggers.create(__filename, 'debug');
