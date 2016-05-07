@@ -22,7 +22,12 @@ export async function buildSync(sourceFile, names) { // regex this dereferencing
    const regex = `([^a-z\\.'])(${names.join('|')})([^-a-z:'])`;
    const replace = `\$1this.\$2$3`;
    logger.ndebug('buildSync regex', regex, replace);
-   const translatedCode = sourceCode.replace(new RegExp(regex, 'g'), replace);
+   let translatedCode = sourceCode.replace(new RegExp(regex, 'g'), replace);
+   translatedCode = translatedCode.split('\n').map((line, index) => {
+      const translatedLine = line.replace(/\$lineNumber/, `'line:${index + 1}'`);
+      logger.info('line', index, translatedLine);
+      return translatedLine;
+   }).join('\n');
    logger.ndebug('source', translatedCode);
    fs.writeFileSync(targetFile, translatedCode);
    return targetFile;
