@@ -23,7 +23,13 @@ export async function buildSync(sourceFile, names) { // regex this dereferencing
    const replace = `\$1this.\$2$3`;
    logger.ndebug('buildSync regex', regex, replace);
    let translatedCode = sourceCode.replace(new RegExp(regex, 'g'), replace);
+   let loggerLine = false;
    translatedCode = translatedCode.split('\n').map((line, index) => {
+      if (/^\s+this\.logger/.test(line)) {
+         loggerLine = true;
+      } else if (loggerLine && /\)\s+{\s*$/.test(line)) {
+         return line + `\nthis.logger.debug('line', ${index + 1});`;
+      }
       const translatedLine = line.replace(/\$lineNumber/, `'line:${index + 1}'`);
       logger.info('line', index, translatedLine);
       return translatedLine;

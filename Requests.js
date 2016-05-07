@@ -5,50 +5,23 @@ import requestf from 'request';
 
 const logger = Loggers.create(__filename, 'debug');
 
-export function json(options) {
-   options = processOptions(options);
-   options.json = true;
-   logger.debug('json', options.url);
-   return request(options);
+function statusCode(err, response) {
+   return err || response.statusCode;
 }
 
-export function request(options) {
-   options = processOptions(options);
-   logger.ndebug('request', options);
-   let startTime = new Date().getTime();
-   return new Promise((resolve, reject) => {
-      requestf(options, (err, response, content) => {
-         let duration = Millis.getElapsedDuration(startTime);
-         logger.debug('response', options.url || options, err || response.statusCode, Millis.formatDuration(duration));
-         if (err) {
-            err.options = options;
-            err.duration = duration;
-            reject(err);
-         } else if (response.statusCode !== 200) {
-            reject({options: options, statusCode: response.statusCode});
-         } else {
-            if (duration > options.slow) {
-               logger.warn('request slow', Millis.formatDuration(duration), options.url);
-            }
-            resolve(content);
-         }
-      });
-   });
-}
-
-export function response(options) {
-   options = processOptions(options);
-   logger.debug('request', options);
-   let startTime = new Date().getTime();
+function createPromise(options) {
+   const startTime = new Date().getTime();
    return new Promise((resolve, reject) => {
       requestf(options, (err, response, content) => {
          let duration = Millis.getElapsedDuration(startTime);
          if (duration > options.slow) {
-            logger.warn('request slow', options.url, err || response.statusCode, Millis.formatDuration(duration));
+            logger.warn('request slow', options.url, statusCode(err, response), Millis.formatDuration(duration));
          } else {
-            logger.debug('response', options, err || response.statusCode, Millis.formatDuration(duration));
+            logger.debug('response', options, statusCode(err, response), Millis.formatDuration(duration));
          }
          if (err) {
+            err.options = options;
+            err.duration = duration;
             reject(err);
          } else if (response.statusCode === 200) {
             resolve([response, content]);
@@ -59,25 +32,30 @@ export function response(options) {
    });
 }
 
-export function head(options) {
-   options = processOptions(options);
-   options.method = 'HEAD';
-   logger.debug('head', options);
-   return new Promise((resolve, reject) => {
-      requestf(options, (err, response) => {
-         logger.debug('response', options.url, err || response.statusCode);
-         if (err) {
-            reject(err);
-         } else {
-            resolve(response);
-         }
-      });
-   });
+export async function content(options) {
+   return contentOptions(processOptions(options));
 }
 
-function processOptions(options) {
+export function json(options) {
+   return contentOptions(processOptions(options), {json: true});
+}
+
+async function contentOptions(options) {
+   let [response, content] = await createPromise(options);
+   if (response.statusCode !== 200) {
+      throw {options: options, statusCode: response.statusCode};
+   }
+   return content;
+}
+
+export async function head(options) {
+   const [response] = await createPromise(options);
+   return response;
+}
+
+function processOptions(options, assign) {
    if (typeof options === 'string') {
-      return {url: options, slow: 8000};
+      options = {url: options, slow: 8000};
    } else if (typeof options === 'object') {
       assert(options.url, 'url');
       options.headers = options.headers || {};
@@ -91,8 +69,11 @@ function processOptions(options) {
       if (!options.slow) {
          options.slow = 8000;
       }
-      return options;
    } else {
       throw {message: 'Invalid request options'};
    }
+   if (assign) {
+      return Object.assign(options, assign);
+   }
+   return options;
 }
