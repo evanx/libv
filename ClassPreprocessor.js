@@ -31,7 +31,7 @@ export async function buildSync(sourceFile, names) { // regex this dereferencing
          return line + `\nthis.logger.debug('line', ${index + 1});`;
       }
       const translatedLine = line.replace(/\$lineNumber/, `'line:${index + 1}'`);
-      logger.debug('line', index, translatedLine);
+      logger.ndebug('line', index, translatedLine);
       return translatedLine;
    }).join('\n');
    logger.ndebug('source', translatedCode);
