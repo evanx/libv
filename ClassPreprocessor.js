@@ -4,7 +4,7 @@ import mkdirp from 'mkdirp';
 import pathl from 'path';
 import * as Files from './Files';
 
-const logger = Loggers.create(module.filename, 'debug');
+const logger = Loggers.create(module.filename, 'info');
 
 export async function buildSync(sourceFile, names) { // regex this dereferencing on names
    if (!/^\.\//.test(sourceFile)) {
@@ -27,11 +27,11 @@ export async function buildSync(sourceFile, names) { // regex this dereferencing
    translatedCode = translatedCode.split('\n').map((line, index) => {
       if (/^\s+this\.logger/.test(line)) {
          loggerLine = true;
-      } else if (loggerLine && /\)\s+{\s*$/.test(line)) {
+      } else if (false && loggerLine && /\)\s+{\s*$/.test(line)) {
          return line + `\nthis.logger.debug('line', ${index + 1});`;
       }
       const translatedLine = line.replace(/\$lineNumber/, `'line:${index + 1}'`);
-      logger.info('line', index, translatedLine);
+      logger.debug('line', index, translatedLine);
       return translatedLine;
    }).join('\n');
    logger.ndebug('source', translatedCode);
