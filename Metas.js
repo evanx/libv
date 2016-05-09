@@ -54,6 +54,19 @@ export function getDefault(meta) {
    return result;
 }
 
+export function getEnv(meta, componentName, env) {
+   const result = {};
+   Object.keys(meta).filter(key => {
+      const envKey = [componentName, key].join('_');
+      return env.hasOwnProperty(envKey);
+   }).forEach(key => {
+      const envKey = [componentName, key].join('_');
+      result[key] = env[envKey];
+   });
+   logger.info('getEnv', componentName, Object.keys(result));
+   return result;
+}
+
 // TODO integration the following
 
 /*

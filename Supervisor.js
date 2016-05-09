@@ -38,6 +38,7 @@ export default class Supervisor {
       logger.info('initComponent', componentName, componentModule, componentConfig);
       const meta = CsonFiles.readFileSync(componentModule + '.cson'); // TODO support external modules
       componentConfig = Object.assign(Metas.getDefault(meta.config), componentConfig);
+      componentConfig = Object.assign(componentConfig, Metas.getEnv(meta.config, componentName, process.env));
       logger.debug('config', componentName, meta.config, componentConfig);
       const errorKeys = Metas.getErrorKeys(meta.config, componentConfig);
       if (errorKeys.length) {

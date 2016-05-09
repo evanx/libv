@@ -45,6 +45,12 @@ class Logger {
    ndebug() {
    }
 
+   dwarn(...args) {
+      if (global.loggerLevel === 'debug') {
+         this.logger.warn('DEBUG', ...args);
+      }
+   }
+
    debug(...args) {
       this.logger.debug(...args);
    }
