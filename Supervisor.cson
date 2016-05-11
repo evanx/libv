@@ -1,4 +1,4 @@
-spec: 'component-validator/supervisor?icp#0.1.2',
+spec: 'supervisor?icp#0.1.2',
 config:
    redisUrl:
       type: 'string'
