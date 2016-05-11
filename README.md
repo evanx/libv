@@ -6,7 +6,7 @@ This is a reference implementation "supervisor" library for a component spec:
 
 For example, it is used by the following projects: 
 - https://github.com/evanx/rquery
-- https://github.com/evanx/cryptoserver (libv branch)
+- https://github.com/evanx/cryptoserver
 
 ### Further reading
 
