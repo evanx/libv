@@ -1,6 +1,10 @@
 
 const logger = Loggers.create(__filename, 'info');
 
+export function isSpecType(meta, type) {
+   return new RegExp(`\W${ty[e]}\W`).test(meta);
+}
+
 export function pickEnv(meta, env) {
    const result = {};
    Object.keys(meta).filter(key => env.hasOwnProperty(key))

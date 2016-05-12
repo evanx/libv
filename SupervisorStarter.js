@@ -111,6 +111,9 @@ function getSupervisorMeta() {
    const componentsConfig = getComponentsConfig();
    const componentsMeta = CsonFiles.readFileSync('./components.cson');
    logger.debug('components.spec', componentsMeta.spec);
+   id (!Metas.isSpec(components, 'components')) {
+      throw {message: 'components.cson spec: ' + componentsMeta.spec};
+   }
    Object.assign(config, {
       availableComponents: componentsMeta.components,
       components: componentsConfig // TODO support external module
@@ -120,17 +123,21 @@ function getSupervisorMeta() {
 
 // supervisor instance
 
-export async function startSupervisor() {
-   const supervisorMeta = getSupervisorMeta();
-   logger.debug('supervisor.spec', supervisorMeta.spec);
-   logger.debug('supervisor config', JSON.stringify(supervisorMeta.config, null, 3));
+function createSupervisor(supervisorMeta) {
    if (/\Wicp\W/.test(supervisorMeta.spec)) { // TODO babel class transform, rather than fragile regex transformation
       await ClassPreprocessor.buildSync('./lib/Supervisor.js', [
          'logger', 'context', 'config'
       ].concat(Object.keys(supervisorMeta.state)));
    }
    var Supervisor = require('../build/Supervisor').default;
-   var supervisor = new Supervisor();
+   return new Supervisor();
+}
+
+export async function startSupervisor() {
+   const supervisorMeta = getSupervisorMeta();
+   logger.debug('supervisor.spec', supervisorMeta.spec);
+   logger.debug('supervisor config', JSON.stringify(supervisorMeta.config, null, 3));
+   var supervisor = createSupervisor(supervisorMeta);
    Object.assign(supervisor, Object.assign({logger: logger, config: supervisorMeta.config}, supervisorMeta.state));
    try {
       await supervisor.init();
