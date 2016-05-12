@@ -5,72 +5,69 @@ export default class Supervisor {
    }
 
    async init() {
-      this.logger.info('config.components', Object.keys(this.config.components));
-      for (const componentName in this.config.components) {
-         const componentConfig = this.config.components[componentName];
+      logger.info('config.components', Object.keys(config.components));
+      for (const componentName in config.components) {
+         const componentConfig = config.components[componentName];
          if (componentConfig) {
-            const componentModule = this.config.availableComponents[componentName];
+            const componentModule = config.availableComponents[componentName];
             assert(componentModule, 'componentModule: ' + componentName);
             await this.initComponent(componentName, componentModule, componentConfig);
          } else {
-            this.logger.warn('config.component', componentName);
+            logger.warn('config.component', componentName);
          }
       }
       await this.startComponents();
       await this.scheduleComponents();
-      this.logger.info('components', Object.keys(this.components));
-      this.logger.info('inited');
+      logger.info('components', Object.keys(components));
+      logger.info('inited');
    }
 
    async initComponent(componentName, componentModule, componentConfig) { // TODO support external modules
-      assert(lodash.isString(componentName), 'component name');
-      this.logger.info('initComponent', componentName, componentModule, componentConfig);
-      const meta = CsonFiles.readFileSync(`./${componentModule}/${componentModule}.cson`); // TODO support external modules
+      assert(typeof componentName === 'string', 'component name');
+      logger.info('initComponent', componentName, componentModule, componentConfig);
+      const meta = CsonFiles.readFileSync(componentModule + '.cson'); // TODO support external modules
       componentConfig = Object.assign(Metas.getDefault(meta.config), componentConfig);
       componentConfig = Object.assign(componentConfig, Metas.getEnv(meta.config, componentName, process.env));
-      this.logger.debug('config', componentName, meta.config, componentConfig);
+      logger.debug('config', componentName, meta.config, componentConfig);
       const errorKeys = Metas.getErrorKeys(meta.config, componentConfig);
       if (errorKeys.length) {
          throw new ValidationError('config: ' + errorKeys.join(' '));
       }
       const componentState = Object.assign({
          config: componentConfig,
-         logger: Loggers.create(componentName, componentConfig.loggerLevel || this.config.loggerLevel),
+         logger: Loggers.create(componentName, componentConfig.loggerLevel || config.loggerLevel),
          supervisor: this,
-         components: this.components
+         components: components
       }, meta.state);
-      this.logger.debug('componentModule', componentModule);
-      if (Metas.isSpecType(meta, 'icp')) {
-         componentModule = await ClassPreprocessor.buildSync(componentModule + '.js', Object.keys(componentState));
-      }
+      componentModule = await ClassPreprocessor.buildSync(componentModule + '.js', Object.keys(componentState));
       const componentClass = require('./' + componentModule).default; // TODO support external modules
       const component = new componentClass();
-      this.logger.info('initComponents state', componentName, Object.keys(componentState));
+      logger.info('initComponents state', componentName, Object.keys(componentState));
       Object.assign(component, {name: componentName}, componentState);
       if (component.init) {
          assert(lodash.isFunction(component.init), 'init function: ' + componentName);
          await component.init();
       }
-      this.initedComponents.push(component);
-      this.components[componentName] = component;
-      this.logger.info('initComponents components', componentName, Object.keys(this.components));
+      initedComponents.push(component);
+      components[componentName] = component;
+      logger.info('initComponents components', componentName, Object.keys(components));
    }
 
    async startComponents() {
-      this.logger.info('startComponents', this.initedComponents.length);
-      for (const component of [... this.initedComponents]) {
+      logger.info('startComponents', initedComponents.length);
+      for (const component of [... initedComponents]) {
          if (component.start) {
             assert(lodash.isFunction(component.start), 'start function: ' + component.name);
-            this.logger.debug('start', component.name);
+            logger.debug('start', component.name);
             await component.start();
          }
       }
    }
 
    async scheduleComponents() {
-      this.logger.debug('scheduleComponents length', Object.keys(this.components));
-      for (const component of [... this.initedComponents]) {
-         this.logger.debug('scheduleComponents component', component.name, Object.keys(component.config));
+      logger.debug('scheduleComponents length', Object.keys(components));
+      for (const component of [... initedComponents]) {
+         logger.debug('scheduleComponents component', component.name, Object.keys(component.config));
          if (component.config.scheduledTimeout) {
             this.scheduleComponentTimeout(component);
          }
@@ -88,7 +85,7 @@ export default class Supervisor {
             await component.scheduledTimeout();
          } catch (err) {
             if (component.config.scheduledTimeoutWarn) {
-               this.logger.warn(err, component.name, component.config);
+               logger.warn(err, component.name, component.config);
             } else {
                this.error(err, component);
             }
@@ -104,7 +101,7 @@ export default class Supervisor {
             await component.scheduledInterval();
          } catch (err) {
             if (component.config.scheduledIntervalWarn) {
-               this.logger.warn(err, component.name, component.config);
+               logger.warn(err, component.name, component.config);
             } else {
                this.error(err, component);
             }
@@ -113,39 +110,39 @@ export default class Supervisor {
    }
 
    async start() {
-      this.logger.info('start components', Object.keys(this.components));
-      for (const component of this.components) {
+      logger.info('start components', Object.keys(components));
+      for (const component of components) {
          await component.start();
       }
-      this.logger.info('started');
+      logger.info('started');
    }
 
    async error(err, component) {
-      if (!this.ended) {
-         this.logger.error(err, component.name);
+      if (!ended) {
+         logger.error(err, component.name);
          if (err.stack) {
-            this.logger.error(err.stack);
+            logger.error(err.stack);
          }
-         if (this.components.metrics) {
-            if (this.components.metrics !== component) {
-               await this.components.metrics.count('error', component.name);
+         if (components.metrics) {
+            if (components.metrics !== component) {
+               await components.metrics.count('error', component.name);
             }
          }
          this.end();
       } else {
-         this.logger.warn(component.name, err);
+         logger.warn(component.name, err);
       }
    }
 
    async endComponents() {
-      if (this.initedComponents.length) {
-         this.initedComponents.reverse();
-         for (const component of this.initedComponents) {
+      if (initedComponents.length) {
+         initedComponents.reverse();
+         for (const component of initedComponents) {
             try {
                await component.end();
-               this.logger.info('end component', component.name);
+               logger.info('end component', component.name);
             } catch (err) {
-               this.logger.error('end component', component.name, err.stack);
+               logger.error('end component', component.name, err.stack);
             }
          }
       }

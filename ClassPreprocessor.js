@@ -7,6 +7,7 @@ import * as Files from './Files';
 const logger = Loggers.create(module.filename, 'info');
 
 export async function buildSync(sourceFile, names) { // regex this dereferencing on names
+   logger.debug('buildSync', sourceFile);
    if (!/^\.\//.test(sourceFile)) {
       throw 'unsupported: ' + sourceFile;
    }
@@ -18,10 +19,9 @@ export async function buildSync(sourceFile, names) { // regex this dereferencing
       sourceFile = sourceFile + '.js';
    }
    const sourceCode = fs.readFileSync(sourceFile).toString();
-   logger.debug('source', sourceCode.length);
    const regex = `([^a-z\\.'])(${names.join('|')})([^-A-Za-z:'])`;
    const replace = `\$1this.\$2$3`;
-   logger.ndebug('buildSync regex', regex, replace);
+   logger.debug('regex', regex, replace);
    let translatedCode = sourceCode.replace(new RegExp(regex, 'g'), replace);
    let loggerLine = false;
    translatedCode = translatedCode.split('\n').map((line, index) => {
@@ -36,5 +36,6 @@ export async function buildSync(sourceFile, names) { // regex this dereferencing
    }).join('\n');
    logger.ndebug('source', translatedCode);
    fs.writeFileSync(targetFile, translatedCode);
+   logger.debug('targetFile', targetFile);
    return targetFile;
 }

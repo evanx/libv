@@ -1,14 +1,14 @@
-spec: 'supervisor?icp#0.1.2',
+spec: 'supervisor#0.1.2',
 config:
    redisUrl:
       type: 'string'
    redisKeyspace:
       type: 'string'
+
 state:
    requiredComponents: []
    initedComponents: []
    components: {}
    startTimestamp: {}
-   ended: false
    scheduledTimeouts: {}
    scheduledIntervals: {}

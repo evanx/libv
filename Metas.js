@@ -2,7 +2,8 @@
 const logger = Loggers.create(__filename, 'info');
 
 export function isSpecType(meta, type) {
-   return new RegExp(`\W${ty[e]}\W`).test(meta);
+   logger.debug('isSpecType', meta.spec, type);
+   return meta.spec.includes(type);
 }
 
 export function pickEnv(meta, env) {

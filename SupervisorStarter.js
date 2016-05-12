@@ -83,6 +83,7 @@ function assignDeps(g) {
    g.Millis = require('./Millis');
    g.Promises = require('./Promises');
    g.Requests = require('./Requests');
+   g.Strings = require('./Strings');
    g.Values = require('./Values');
 }
 
@@ -108,10 +109,11 @@ function getComponentsConfig() {
 }
 
 function getSupervisorMeta() {
+   logger.debug('getSupervisorMeta');
    const componentsConfig = getComponentsConfig();
    const componentsMeta = CsonFiles.readFileSync('./components.cson');
    logger.debug('components.spec', componentsMeta.spec);
-   id (!Metas.isSpec(components, 'components')) {
+   if (!Metas.isSpecType(componentsMeta, 'components')) {
       throw {message: 'components.cson spec: ' + componentsMeta.spec};
    }
    Object.assign(config, {
@@ -123,21 +125,24 @@ function getSupervisorMeta() {
 
 // supervisor instance
 
-function createSupervisor(supervisorMeta) {
+async function createSupervisor(supervisorMeta) {
    if (/\Wicp\W/.test(supervisorMeta.spec)) { // TODO babel class transform, rather than fragile regex transformation
+      logger.debug('createSupervisor', supervisorMeta.spec);
       await ClassPreprocessor.buildSync('./lib/Supervisor.js', [
          'logger', 'context', 'config'
       ].concat(Object.keys(supervisorMeta.state)));
    }
-   var Supervisor = require('../build/Supervisor').default;
+   const Supervisor = require('../build/Supervisor').default;
    return new Supervisor();
 }
 
 export async function startSupervisor() {
+   logger.debug('startSupervisor');
    const supervisorMeta = getSupervisorMeta();
    logger.debug('supervisor.spec', supervisorMeta.spec);
    logger.debug('supervisor config', JSON.stringify(supervisorMeta.config, null, 3));
-   var supervisor = createSupervisor(supervisorMeta);
+   const supervisor = await createSupervisor(supervisorMeta);
+   assert(lodash.isFunction(supervisor.init), 'supervisor.init');
    Object.assign(supervisor, Object.assign({logger: logger, config: supervisorMeta.config}, supervisorMeta.state));
    try {
       await supervisor.init();
