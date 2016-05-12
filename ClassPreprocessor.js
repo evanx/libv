@@ -19,7 +19,7 @@ export async function buildSync(sourceFile, names) { // regex this dereferencing
    }
    const sourceCode = fs.readFileSync(sourceFile).toString();
    logger.debug('source', sourceCode.length);
-   const regex = `([^a-z\\.'])(${names.join('|')})([^-a-z:'])`;
+   const regex = `([^a-z\\.'])(${names.join('|')})([^-A-Za-z:'])`;
    const replace = `\$1this.\$2$3`;
    logger.ndebug('buildSync regex', regex, replace);
    let translatedCode = sourceCode.replace(new RegExp(regex, 'g'), replace);
