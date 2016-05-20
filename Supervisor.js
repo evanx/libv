@@ -39,21 +39,38 @@ export default class Supervisor {
          supervisor: this,
          components: this.components
       }, meta.state);
+      this.componentStates[componentName] = componentState;
       this.logger.debug('componentModule', componentModule);
       if (Metas.isSpecType(meta, 'icp')) {
          componentModule = await ClassPreprocessor.buildSync(componentModule + '.js', Object.keys(componentState));
       }
-      const componentClass = require('./' + componentModule).default; // TODO support external modules
-      const component = new componentClass();
-      this.logger.info('initComponents state', componentName, Object.keys(componentState));
-      Object.assign(component, {name: componentName}, componentState);
+      let componentClass = require('./' + componentModule);
+      if (componentClass.default) {
+         componentClass = componentClass.default;
+      }
+      let component;
+      if (componentClass.start) {
+         component = componentClass;
+         component.config = componentConfig;
+      } else {
+         component = new componentClass();
+         this.logger.info('initComponents state', componentName, Object.keys(componentState));
+         Object.assign(component, {name: componentName}, componentState);
+      }
+      component.name = componentName;
+      this.validateComponent(component);
       if (component.init) {
          assert(lodash.isFunction(component.init), 'init function: ' + componentName);
-         await component.init();
+         await component.init(componentState);
       }
       this.initedComponents.push(component);
       this.components[componentName] = component;
       this.logger.info('initComponents components', componentName, Object.keys(this.components));
+   }
+
+   validateComponent(component) {
+      assert(component.name, 'component.name');
+      assert(lodash.isFunction(component.start), 'start function: ' + component.name);
    }
 
    async startComponents() {
@@ -61,8 +78,9 @@ export default class Supervisor {
       for (const component of [... this.initedComponents]) {
          if (component.start) {
             assert(lodash.isFunction(component.start), 'start function: ' + component.name);
+            assert(lodash.isString(component.name), 'name type: ' + typeof component.name);
             this.logger.debug('start', component.name);
-            await component.start();
+            await component.start(this.componentStates[component.name]);
          }
       }
    }

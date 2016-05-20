@@ -14,11 +14,11 @@ export function pickEnv(meta, env) {
 }
 
 export function getErrorKeys(meta, props) {
-   return Object.keys(meta).filter(key => !isValid(meta[key], props[key]));
+   return Object.keys(meta).filter(key => !isValid(meta[key], key, props[key]));
 }
 
-function isValid(meta, value) {
-   logger.debug('isValid', value, meta);
+function isValid(meta, key, value) {
+   logger.debug('isValid', key, value, meta);
    if (value === undefined) {
       return meta.optional;
    } else if (meta.type === 'url') {

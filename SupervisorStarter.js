@@ -83,6 +83,7 @@ function assignDeps(g) {
    g.Asserts = require('./Asserts');
    g.ClassPreprocessor = require('./ClassPreprocessor');
    g.CsonFiles = require('./CsonFiles');
+   g.Files = require('./Files');
    g.Metas = require('./Metas');
    g.Millis = require('./Millis');
    g.Promises = require('./Promises');

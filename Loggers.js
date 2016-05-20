@@ -1,37 +1,7 @@
 
-import irequest from 'request';
-
 const config = {
-   errorLimit: 30000
+   errorLimit: 30
 };
-
-// promises
-
-export function promisify(fn) {
-   return new Promise((resolve, reject) => {
-      fn((err, result) => {
-         if (err) {
-            reject(err);
-         } else {
-            resolve(result);
-         }
-      });
-   });
-}
-
-export function request(options) {
-   return promisify(callback => irequest(options, callback));
-}
-
-export function delay(millis) {
-   return new Promise((resolve, reject) => {
-      setTimeout(() => {
-         resolve();
-      }, millis);
-   });
-}
-
-//
 
 class Logger {
 
@@ -66,14 +36,14 @@ class Logger {
    async error(...args) {
       this.logger.error(...args);
       const now = new Date().getTime();
-      if (this.errorTime && now - this.errorTime > config.errorLimit) {
+      if (!this.errorTime || now - this.errorTime > config.errorLimit*1000) {
          this.errorTime = now;
          const loggingUrl = global.loggingUrl;
          if (loggingUrl) {
             const message = JSON.stringify(this.map(...args));
             const url = [loggingUrl, 'lpushtrim', message, 100].join('/');
             try {
-               await request({url, method: 'head'});
+               await Promises.request({url, method: 'head'});
             } catch (err) {
                logger.warn('remote', loggingUrl, err);
             }

@@ -8,6 +8,7 @@ config:
 state:
    requiredComponents: []
    initedComponents: []
+   componentStates: {}
    components: {}
    startTimestamp: {}
    scheduledTimeouts: {}
