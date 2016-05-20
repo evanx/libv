@@ -10,13 +10,5 @@ export function mkdirp(directory) {
 }
 
 export function readFile(file) {
-   return new Promise((resolve, reject) => {
-      fs.readFile(file, (err, content) => {
-         if (err) {
-            reject(err);
-         } else {
-            resolve(content);
-         }
-      });
-   });
+   return Promises.promisify(callback => fs.readFile(file, callback));
 }
