@@ -23,6 +23,8 @@ function isValid(meta, value) {
       return meta.optional;
    } else if (meta.type === 'url') {
       return typeof value === 'string' && value.match(/^http/);
+   } else if (meta.type === 'file') {
+      return typeof value === 'string' && Files.existsFile(value);
    } else if (meta.type === 'string') {
       return typeof value === 'string';
    } else if (meta.type === 'duration') {

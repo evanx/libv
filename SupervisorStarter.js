@@ -1,4 +1,8 @@
 
+// messages
+
+var Messages = require('./SupervisorStarter.messages.js');
+
 // create context for Supervisor and components
 
 // globals
@@ -91,10 +95,27 @@ assignDeps(global);
 
 // supervisor configuration
 
+function getSupervisorMeta() {
+   logger.debug('getSupervisorMeta');
+   const componentsConfig = getComponentsConfig();
+   logger.debug('config.spec', componentsConfig.spec);
+   const componentsMeta = CsonFiles.readFileSync('./components.cson');
+   logger.debug('components.spec', componentsMeta.spec);
+   if (!Metas.isSpecType(componentsMeta, 'components')) {
+      throw {message: 'components.cson spec: ' + componentsMeta.spec};
+   }
+   Object.assign(config, {
+      availableComponents: componentsMeta.components,
+      components: componentsConfig.components
+   });
+   return Object.assign(CsonFiles.readFileSync('./lib/Supervisor.cson'), {config: config});
+}
+
 function getComponentsConfig() {
    if (!process.env.configModule) {
-      throw 'Specify configModule e.g. configModule=./demo/config.js, or try: npm run demo';
+      throw Messages.missingConfigModule();
    }
+   logger.info('env.configModule', process.env.configModule);
    const config = require('.' + process.env.configModule);
    Object.keys(config).forEach(name => {
       const componentConfig = config[name];
@@ -108,24 +129,10 @@ function getComponentsConfig() {
    return config;
 }
 
-function getSupervisorMeta() {
-   logger.debug('getSupervisorMeta');
-   const componentsConfig = getComponentsConfig();
-   const componentsMeta = CsonFiles.readFileSync('./components.cson');
-   logger.debug('components.spec', componentsMeta.spec);
-   if (!Metas.isSpecType(componentsMeta, 'components')) {
-      throw {message: 'components.cson spec: ' + componentsMeta.spec};
-   }
-   Object.assign(config, {
-      availableComponents: componentsMeta.components,
-      components: componentsConfig // TODO support external module
-   });
-   return Object.assign(CsonFiles.readFileSync('./lib/Supervisor.cson'), {config: config});
-}
-
 // supervisor instance
 
 async function createSupervisor(supervisorMeta) {
+   logger.debug('createSupervisor', supervisorMeta);
    if (/\Wicp\W/.test(supervisorMeta.spec)) { // TODO babel class transform, rather than fragile regex transformation
       logger.debug('createSupervisor', supervisorMeta.spec);
       await ClassPreprocessor.buildSync('./lib/Supervisor.js', [
