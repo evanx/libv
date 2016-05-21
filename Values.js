@@ -2,7 +2,7 @@
 const logger = Loggers.create(__filename, 'info');
 
 export function isDefined(value) {
-   return value !== undefined
+   return value !== undefined;
 }
 
 export function filterKeys(object, other, fn) {
