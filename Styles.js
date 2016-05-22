@@ -4,7 +4,7 @@ const logger = Loggers.create(module.filename, 'info');
 const IntegerKeys = ['lineHeight'];
 
 export function renderStyles(object) {
-   return Objects.translate(object, (key, value) => {
+   return Objects.translate(object, {}, (key, value) => {
       return {key, value: renderKeys(value)};
    });
 }

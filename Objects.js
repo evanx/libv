@@ -1,19 +1,21 @@
 
 const logger = Loggers.create(__filename, 'info');
 
-export function translate(object, fn) {
-   let result = {};
+export function mapEntries(object) {
+   return Object.keys(object).map(key => {
+      return {key, value: object[key]};
+   });
+}
+
+export function translate(object, other, fn) {
    Object.keys(object).forEach(key => {
-      const entry = fn(key, object[key], result);
+      const entry = fn(key, object[key], other);
       if (!entry) {
-      } else if (entry.result) {
-         result = entry.result;
-      } else if (entry.key !== undefined) {
-         if (entry.value !== undefined) {
-            result[entry.key] = entry.value;
-         }
+      } else if (!Values.isDefined(entry.key)) {
+      } else if (!Values.isDefined(entry.value)) {
       } else {
+         other[entry.key] = entry.value;
       }
    });
-   return result;
+   return other;
 }
