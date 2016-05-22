@@ -1,6 +1,8 @@
 
 set -u -e 
 
+[ -d lib ] && cd lib
+
 git remote -v | grep 'https://github.com/evanx/libv.git'
 
 pwd
