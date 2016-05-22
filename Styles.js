@@ -1,35 +1,59 @@
 
-const logger = Loggers.create(module.filename, 'info');
+const logger = Loggers.create(module.filename, 'debug');
 
 const IntegerKeys = ['lineHeight'];
 
 export function renderStyles(object) {
-   return Objects.translate(object, {}, (key, value) => {
-      return {key, value: renderKeys(value)};
-   });
+   const styles = renderKeys(object, 'root');
+   logger.debug('styles', styles);
+   return styles;
 }
 
-export function renderKeys(object) {
-   return Object.keys(object).map(key => {
-      return {key: renderKey(key), value: renderKeyValue(key, object[key])};
-   }).map(entry => {
-      return `${entry.key}:${entry.value}`
-   }).join(';');
+export function renderKeys(object, key) {
+   if (Object.keys(object).filter(key => isCssKey(key)).length) {
+      return lodash.compact(Object.keys(object).map(key => {
+         return {key: renderKey(key), value: renderValue(object[key], key)};
+      }).map(entry => {
+         if (entry.key && lodash.isString(entry.value)) {
+            return `${entry.key}:${entry.value}`
+         } else {
+            logger.warn('renderKeys', entry.key, typeof entry.value);
+         }
+      })).join(';');
+   } else {
+      return Object.keys(object).reduce((result, key) => {
+         result[key] = renderValue(object[key], key);
+         return result;
+      }, {});
+   }
+}
+
+export function renderValue(value, key) {
+   if (!Values.isDefined(value)) {
+      logger.debug('renderValue empty', key);
+      return '';
+   } else if (Values.isInteger(value)) {
+      if (IntegerKeys.includes(key)) {
+         return value.toString();
+      } else {
+         return `${value}px`;
+      }
+   } else if (lodash.isString(value)) {
+      return value;
+   } else if (lodash.isArray(value)) {
+      return value.map(v => renderValue(v, key)).join(' ');
+   } else if (lodash.isObject(value)) {
+      return renderKeys(value);
+   } else {
+      throw {message: 'Unsupported type: ' + typeof value, key};
+   }
 }
 
 function renderKey(key) {
    return lodash.kebabCase(key);
 }
 
-function renderKeyValue(key, value) {
-   if (Values.isInteger(value)) {
-      if (IntegerKeys.includes(key)) {
-         return value.toString();
-      } else {
-         return `${value}px`;
-      }
-   } else if (lodash.isArray(value)) {
-      return value.map(v => renderKeyValue(key, v)).join(' ');
-   }
-   return value;
+function isCssKey(key) {
+   return IntegerKeys.includes(key)
+   || key.match(/^(margin|padding|font|color|background)/);
 }
