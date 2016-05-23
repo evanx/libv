@@ -1,7 +1,13 @@
 
 const logger = Loggers.create(__filename, 'info');
 
-const ElementNames = ['div', 'span', 'pre', 'p'];
+const ElementNames = Strings.splitSpace(`
+html head meta link script body
+header nav h1 h2 h3 h4 h5 h6
+section article aside
+div span pre p hr br
+table thead tbody th tr td
+`);
 
 export function renderPath(path) {
    if (lodash.isArray(path)) {

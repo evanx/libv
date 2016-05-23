@@ -144,7 +144,7 @@ async function createSupervisor(supervisorMeta) {
          'logger', 'context', 'config'
       ].concat(Object.keys(supervisorMeta.state)));
    }
-   const Supervisor = require('../build/Supervisor').default;
+   const Supervisor = require('../zbuild/Supervisor').default;
    return new Supervisor();
 }
 
