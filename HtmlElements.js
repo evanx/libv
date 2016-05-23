@@ -1,6 +1,17 @@
 
 const logger = Loggers.create(__filename, 'info');
 
+export function renderContent(content) {
+   if (lodash.isArray(content)) {
+      content = content.join('\n');
+   } else if (lodash.isString(content)) {
+   } else if (lodash.isInteger(content)) {
+   } else {
+      logger.warn('content type', typeof content);
+   }
+   return content.toString().replace(/\n\s*/g, '\n');
+}
+
 export function el(name, attributes, ...children) {
    const content = [];
    const attrs = Objects.mapEntries(attributes)
