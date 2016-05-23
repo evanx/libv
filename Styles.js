@@ -2,6 +2,21 @@
 const logger = Loggers.create(module.filename, 'debug');
 
 const IntegerKeys = ['lineHeight'];
+const CssKeys = Strings.splitSpace(`
+color background
+width height
+display position cursor
+`);
+const CssKeyPrefixes = Strings.splitSpace(`
+margin padding border
+font background min
+`);
+const CssKeyRegex = new RegExp(createCssKeyRegexString());
+
+function createCssKeyRegexString() {
+   const prefixes = CssKeys.concat(CssKeyPrefixes);
+   return ['^(', prefixes.join('|'), ')'].join();
+}
 
 export function renderStyles(object) {
    const styles = renderKeys(object, 'root');
@@ -55,5 +70,5 @@ function renderKey(key) {
 
 function isCssKey(key) {
    return IntegerKeys.includes(key)
-   || key.match(/^(margin|padding|font|color|background)/);
+   || key.match(CssKeyRegex);
 }

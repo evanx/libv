@@ -1,6 +1,19 @@
 
 const logger = Loggers.create(__filename, 'info');
 
+const ElementNames = ['div', 'span', 'pre', 'p'];
+
+export function renderPath(path) {
+   if (lodash.isArray(path)) {
+      return ['', ...path].join('/');
+   } else if (lodash.isString(path)) {
+      return path;
+   } else {
+      return '/routes';
+      logger.warn('path type', typeof path);
+   }
+}
+
 export function renderContent(content) {
    if (lodash.isArray(content)) {
       content = content.join('\n');
@@ -30,10 +43,16 @@ export function el(name, attributes, ...children) {
    return lodash.flatten(content).join('\n');
 }
 
-export function div(attr, ...children) {
-   return el('div', attr, ...children);
-}
-
 export function styled(name, style, ...children) {
    return el(name, {style}, ...children);
 }
+
+export function createElements(x) {
+   exports.styled = {};
+   ElementNames.forEach(name => {
+      x[name] = (...args) => el(name, ...args);
+      x.styled[name] = (...args) => styled(name, ...args);
+   });
+}
+
+createElements(module.exports);
