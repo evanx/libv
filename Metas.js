@@ -19,7 +19,9 @@ export function getErrorKeys(meta, props) {
 
 function isValid(meta, key, value) {
    logger.debug('isValid', key, value, meta);
-   if (value === undefined) {
+   if (lodash.isString(meta)) {
+      return lodash.isString(value);
+   } else if (value === undefined) {
       return meta.optional;
    } else if (meta.type === 'url') {
       return typeof value === 'string' && value.match(/^http/);
@@ -58,9 +60,21 @@ function isValid(meta, key, value) {
 
 export function getDefault(meta) {
    const result = {};
-   Object.keys(meta).filter(key => meta[key].defaultValue !== undefined)
-   .forEach(key => result[key] = meta[key].defaultValue);
+   Object.keys(meta)
+   .filter(key => Values.isDefined(translateMeta(meta[key]).defaultValue))
+   .forEach(key => result[key] = translateMeta(meta[key]).defaultValue);
    return result;
+}
+
+function translateMeta(meta) {
+   if (lodash.isString(meta)) {
+      return {
+         type: 'string',
+         defaultValue: meta
+      };
+   } else {
+      return meta;
+   }
 }
 
 export function getEnv(meta, componentName, env) {
