@@ -1,5 +1,5 @@
 
-## libv
+## rhlibv
 
 This is a reference implementation "supervisor" library for a component spec:
 - https://github.com/evanx/component-validator
