@@ -104,7 +104,7 @@ export function element(name, attributes, ...args) {
          }
       }
    }
-   return lodash.flatten(content).join('\n');
+   return lodash.flatten(content).join('');
 }
 
 function _style(name, style, ...children) {
