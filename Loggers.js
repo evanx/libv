@@ -6,7 +6,6 @@ const config = {
 class Logger {
 
    constructor(options) {
-      Object.assign(options, {level: global.loggerLevel});
       Object.assign(this, options);
       this.logger = bunyan.createLogger({name: this.name, level: this.level});
       this.logger.info('create', global.loggerLevel, options);
@@ -16,7 +15,7 @@ class Logger {
    }
 
    dwarn(...args) {
-      if (global.loggerLevel === 'debug') {
+      if (this.level === 'debug') {
          this.logger.warn('DEBUG', ...args);
       }
       return args[0];
@@ -85,5 +84,6 @@ export function create(filename, level) {
    if (nameMatch) {
       name = nameMatch[1];
    }
+   level = level || global.loggerLevel;
    return new Logger({name, level});
 };

@@ -1,5 +1,5 @@
 
-const logger = Loggers.create(module.filename, 'debug');
+const logger = Loggers.create(module.filename, 'info');
 
 const IntegerKeys = ['lineHeight'];
 const CssKeys = Strings.splitSpace(`
