@@ -78,6 +78,7 @@ export function element(name, attributes, ...args) {
    if (!attributes) {
       content.push(`<${name}/>`);
    } else {
+      logger.debug('ZZ attr', name, attributes);
       assert(lodash.isObject(attributes), 'attributes');
       const children = args;
       const attrs = Objects.kvs(attributes)
