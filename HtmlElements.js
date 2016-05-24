@@ -1,13 +1,66 @@
 
 const logger = Loggers.create(__filename, 'info');
 
+const SelfClosingElementNames = Strings.splitSpace(`
+   area base basefont br hr input img link meta
+   `
+);
+
 const ElementNames = Strings.splitSpace(`
-html head meta link script body
-header nav h1 h2 h3 h4 h5 h6
-section article aside
-div span pre p hr br
-table thead tbody th tr td
-`);
+   html head meta link script body
+   header nav h1 h2 h3 h4 h5 h6
+   section article aside
+   table thead tbody th tr td
+   div span pre p hr br img i b tt
+   `
+);
+
+export function html(strings, ...values) {
+   strings = strings.map(string => string.replace(/^\s*\n\s*/, ''));
+   logger.debug('html', strings, values);
+   let previousString = strings[0];
+   return values.reduce((result, value, index) => {
+      const nextString = strings[index + 1];
+      try {
+         if (lodash.endsWith(previousString, '=')) {
+            if (/^["']/.test(nextString)) {
+               throw {message: 'quotes'};
+            } else if (lodash.isString(value)) {
+               value = '"' + value + '"';
+            } else {
+               throw {message: typeof value};
+            }
+         }
+         if (lodash.endsWith(previousString, '=\'')) {
+            if (!/^'/.test(nextString)) {
+               throw {message: 'missing closing single quote'};
+            } else if (lodash.isString(value)) {
+            } else {
+               throw {message: typeof value};
+            }
+         }
+         if (lodash.endsWith(previousString, '=\"')) {
+            if (!/^"/.test(nextString)) {
+               throw {message: 'missing closing double quote'};
+            } else if (lodash.isString(value)) {
+            } else {
+               throw {message: typeof value};
+            }
+         }
+         if (lodash.isArray(value)) {
+            value = lodash.flatten(value).join('\n');
+         } else if (lodash.isString(value)) {
+         } else {
+            throw {message: 'value type: ' + typeof value};
+         }
+      } catch (err) {
+         logger.error('html', err.message, {previousString, value, nextString});
+         throw err;
+      }
+      previousString = nextString;
+      return result + value + nextString;
+   }, previousString);
+}
 
 export function renderPath(path) {
    if (lodash.isArray(path)) {
@@ -20,45 +73,73 @@ export function renderPath(path) {
    }
 }
 
-export function renderContent(content) {
-   if (lodash.isArray(content)) {
-      content = content.join('\n');
-   } else if (lodash.isString(content)) {
-   } else if (lodash.isInteger(content)) {
-   } else {
-      logger.warn('content type', typeof content);
-   }
-   return content.toString().replace(/\n\s*/g, '\n');
-}
-
-export function el(name, attributes, ...children) {
+export function element(name, attributes, ...args) {
    const content = [];
-   const attrs = Objects.mapEntries(attributes)
-   .filter(e => e.value && e.value.toString())
-   .map(e => Object.assign(e, {value: e.value.toString()}))
-   .map(e => `${e.key}="${e.value}"`);
-   logger.debug('el', name, attrs);
-   if (attrs.length) {
-      content.push(`<${name} ${attrs.join(' ')}>`);
+   if (!attributes) {
+      content.push(`<${name}/>`);
    } else {
-      content.push(`<${name}>`);
+      assert(lodash.isObject(attributes), 'attributes');
+      const children = args;
+      const attrs = Objects.kvs(attributes)
+      .filter(kv => kv.value && kv.value.toString())
+      .map(kv => ({key: kv.key, value: kv.value.toString()}))
+      .map(kv => `${kv.key}="${kv.value}"`);
+      logger.debug('element', name, attrs);
+      if (attrs.length) {
+         if (children.length) {
+            content.push(`<${name} ${attrs.join(' ')}>`);
+            content.push(children);
+            content.push(`</${name}>`);
+         } else {
+            content.push(`<${name} ${attrs.join(' ')}/>`);
+         }
+      } else {
+         if (children.length) {
+            content.push(`<${name}>`);
+            content.push(children);
+            content.push(`</${name}>`);
+         } else {
+            content.push(`<${name}/>`);
+         }
+      }
    }
-   content.push(children.map(child => child.toString()));
-   content.push(`</${name}>`);
-   logger.debug('el', name, attrs, content);
    return lodash.flatten(content).join('\n');
 }
 
-export function styled(name, style, ...children) {
-   return el(name, {style}, ...children);
+function _style(name, style, ...children) {
+   assert.equal(typeof style, 'string', 'style type: ' + name);
+   return element(name, {style}, ...children);
 }
 
-export function createElements(x) {
-   exports.styled = {};
-   ElementNames.forEach(name => {
-      x[name] = (...args) => el(name, ...args);
-      x.styled[name] = (...args) => styled(name, ...args);
-   });
+function _content(name, ...children) {
+   return element(name, {}, ...children);
 }
 
-createElements(module.exports);
+export function createElements() {
+   return ElementNames.reduce((result, name) => {
+      result[name] = (...args) => element(name, ...args);
+      return result;
+   }, {});
+}
+
+export function createStyleElements() {
+   return ElementNames.reduce((result, name) => {
+      result[name] = (...args) => _style(name, ...args);
+      return result;
+   }, {});
+}
+
+export function createContentElements() {
+   return ElementNames.reduce((result, name) => {
+      result[name] = (...args) => _content(name, ...args);
+      return result;
+   }, {});
+}
+
+export function assignDeps(g) {
+   g.He = createElements();
+   g.Hs = createStyleElements();
+   g.Hc = createContentElements();
+   g.Hx = module.exports;
+   g.html = html;
+}

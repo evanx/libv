@@ -19,10 +19,14 @@ class Logger {
       if (global.loggerLevel === 'debug') {
          this.logger.warn('DEBUG', ...args);
       }
+      return args[0];
    }
 
    debug(...args) {
       this.logger.debug(...args);
+      if (args.length > 0) {
+         return args[args.length - 1];
+      }
    }
 
    info(...args) {

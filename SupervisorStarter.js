@@ -92,8 +92,8 @@ function assignDeps(g) {
    g.Strings = require('./Strings');
    g.Styles = require('./Styles');
    g.HtmlElements = require('./HtmlElements');
+   g.HtmlElements.assignDeps(g);
    g.Values = require('./Values');
-   g.Hx = g.HtmlElements;   
 }
 
 assignDeps(global);

@@ -3,25 +3,110 @@ const logger = Loggers.create(module.filename, 'debug');
 
 const IntegerKeys = ['lineHeight'];
 const CssKeys = Strings.splitSpace(`
-color background
-width height
-display position cursor
-`);
+   color background
+   width height
+   cursor
+   display position float clear
+   textDecoration
+   `
+);
 const CssKeyPrefixes = Strings.splitSpace(`
-margin padding border
-font background min
-`);
+   text
+   margin padding border
+   font background min
+   `
+);
+
 const CssKeyRegex = new RegExp(createCssKeyRegexString());
+
+function test() {
+   logger.debug('CssKeys', CssKeys.join('|'));
+   logger.debug('CssKeyRegex', createCssKeyRegexString());
+}
+
+if (process.env.NODE_ENV !== 'production') {
+   test();
+}
 
 function createCssKeyRegexString() {
    const prefixes = CssKeys.concat(CssKeyPrefixes);
-   return ['^(', prefixes.join('|'), ')'].join();
+   return ['^(', prefixes.join('|'), ')'].join('');
 }
+
+// exports
 
 export function renderStyles(object) {
    const styles = renderKeys(object, 'root');
    logger.debug('styles', styles);
    return styles;
+}
+
+export function renderStyleSheet(object) {
+   return Object.keys(object)
+   .map(key => Objects.kv(object, key))
+   .filter(kv => lodash.isString(kv.value))
+   .map(kv => [kv.key, '{',  kv.value, '}'].join(' '))
+   .join('\n');
+}
+
+const userAgentCache = new Map();
+
+function getUserAgentType(key, ua) {
+   if (ua.match(/Mobile/)) {
+      return 'm';
+   } else {
+      return 'o';
+   }
+}
+
+export function getCachedUserAgentStyleSheet(options) {
+   const {styles, key, ua} = options;
+   assert.equal(typeof styles[key], 'object', 'css stylesheet object');
+   options.uaType = getUserAgentType(key, ua);
+   options.uaKey = [options.uaType, key].join(':');
+   const entry = userAgentCache.get(options.uaKey);
+   if (entry) {
+      if (entry.expire && entry.expire < new Date().getTime()) {
+      } else if (entry.value) {
+         return entry.value;
+      }
+   }
+   return setUserAgentStyleSheet(options);
+}
+
+export function setUserAgentStyleSheet({styles, key, uaKey, uaType}) {
+   const entry = {expire: 0};
+   entry.value = getUserAgentStyleSheet(styles[key]);
+   if (uaType === 'o') {
+      const mediaKey = '_768';
+      const mediaStyles = styles[mediaKey];
+      if (mediaStyles) {
+         const styleSheet = mediaStyles[key];
+         if (!styleSheet) {
+            logger.debug('stylesheet empty', key, mediaKey);
+         } else {
+            entry.value += getUserAgentStyleSheet(styleSheet);
+         }
+      }
+   }
+   userAgentCache.set(uaKey, entry);
+   return entry.value;
+}
+
+export function getUserAgentStyleSheet(object) {
+   return Object.keys(object)
+   .map(key => Objects.kv(object, key))
+   .filter(kv => lodash.isString(kv.value))
+   .map(kv => [kv.key, '{',  kv.value, '}'].join(' '))
+   .join('\n');
+}
+
+export function renderUserAgentStylesheet(userAgent, object) {
+   return Object.keys(object)
+   .map(key => Objects.kv(object, key))
+   .filter(kv => lodash.isString(kv.value))
+   .map(kv => [kv.key, '{',  kv.value, '}'].join(' '))
+   .join('\n');
 }
 
 export function renderKeys(object, key) {
