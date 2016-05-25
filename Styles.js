@@ -61,7 +61,7 @@ function getUserAgentType(key, ua) {
 
 export function getCachedUserAgentStyleSheet(options) {
    const {styles, key, ua} = options;
-   assert.equal(typeof styles[key], 'object', 'css stylesheet object');
+   assert.equal(typeof styles[key], 'object', 'css stylesheet object: ' + key);
    options.uaType = getUserAgentType(key, ua);
    options.uaKey = [options.uaType, key].join(':');
    const entry = userAgentCache.get(options.uaKey);
