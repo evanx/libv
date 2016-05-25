@@ -99,7 +99,7 @@ export function element(name, attributes, ...args) {
       content.push(`<${name}/>`);
    } else {
       assert(lodash.isObject(attributes), 'attributes: ' + name);
-      const children = args;
+      const children = lodash.compact(lodash.flatten(args));
       const attrs = Objects.kvs(attributes)
       .filter(kv => kv.key !== 'meta')
       .filter(kv => kv.value && kv.value.toString())
