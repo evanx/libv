@@ -44,7 +44,7 @@ class Logger {
          const loggingUrl = global.loggingUrl;
          if (loggingUrl) {
             const message = JSON.stringify(this.map(...args));
-            const url = [loggingUrl, 'lpushtrim', message, 100].join('/');
+            const url = [loggingUrl, 'lpush-trim', message, 100].join('/');
             try {
                await Promises.request({url, method: 'head'});
             } catch (err) {
