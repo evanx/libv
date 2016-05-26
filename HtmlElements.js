@@ -11,7 +11,7 @@ const ElementNames = Strings.splitSpace(`
    header nav h1 h2 h3 h4 h5 h6
    section article aside
    table thead tbody th tr td
-   div span pre p hr br img i b tt
+   div span pre p a hr br img i b tt
    `
 );
 
@@ -27,7 +27,7 @@ class HtmlElement {
    constructor({name, attributes, children}) {
    }
 
-   render() {
+   toString() {
       return '';
    }
 }
@@ -82,6 +82,14 @@ export function html(strings, ...values) {
    }, previousString);
 }
 
+export function ms(meta, style) {
+   return {meta, style};
+}
+
+export function onClick(path) {
+   return `window.location.pathname='${path}'`;
+}
+
 export function renderPath(path) {
    if (lodash.isArray(path)) {
       return ['', ...path].join('/');
@@ -96,36 +104,88 @@ export function renderPath(path) {
 export function element(name, attributes, ...args) {
    const content = [];
    if (!attributes) {
-      content.push(`<${name}/>`);
-   } else {
-      assert(lodash.isObject(attributes), 'attributes: ' + name);
-      const children = lodash.compact(lodash.flatten(args));
-      const attrs = Objects.kvs(attributes)
-      .filter(kv => kv.key !== 'meta')
-      .filter(kv => kv.value && kv.value.toString())
-      .map(kv => ({key: kv.key, value: kv.value.toString()}))
-      .map(kv => `${kv.key}="${kv.value}"`);
-      logger.debug('element', name, attrs);
-      if (attrs.length) {
-         if (children.length) {
-            content.push(`<${name} ${attrs.join(' ')}>`);
-            content.push(lodash.flatten(children));
-            content.push(`</${name}>`);
-         } else {
-            content.push(`<${name} ${attrs.join(' ')}/>`);
-         }
+      return ['<', name, '/>'].join('');
+   }
+   const children = lodash.compact(lodash.flatten(args));
+   if (!lodash.isObject(attributes)) {
+      throw {message: 'attributes: ' + typeof attributes, context: {name, attributes, children}};
+   }
+   const attrs = Objects.kvs(attributes)
+   .filter(kv => kv.key !== 'meta')
+   .filter(kv => kv.value && kv.value.toString())
+   .map(kv => ({key: kv.key, value: kv.value.toString()}))
+   .map(kv => `${kv.key}="${kv.value}"`);
+   logger.debug('element', name, attrs);
+   return renderElements(name, attributes, attrs, children);
+}
+
+function renderElements(name, attributes, attrs, children) {
+   if (isMeta(attributes, 'repeat')) {
+      if (!children.length) {
+         return '';
+      } else if (!lodash.isArray(children)) {
+         throw {message: 'children type: ' + typeof children, name, attributes, children};
+      } else if (lodash.isEmpty(children)) {
+         return '';
       } else {
-         if (children.length) {
-            content.push(`<${name}>`);
-            content.push(lodash.flatten(children));
-            content.push(`</${name}>`);
-         } else if (attributes.meta === 'optional') {
+         return lodash.flatten(children).map(child => {
+            return renderElementChildren(name, attributes, attrs, child);
+         }).join('\n');
+      }
+   } else {
+      return renderElementChildren(name, attributes, attrs, children);
+   }
+}
+
+function renderElementChildren(name, attributes, attrs, ...children) {
+   const content = [];
+   children = lodash.flatten(children);
+   if (!attrs.length && !children.length) {
+      if (isMeta(attributes, 'optional')) {
+      } else {
+         if (SelfClosingElementNames.includes(name)) {
+            return `<${name}/>`;
          } else {
-            content.push(`<${name}/>`);
+            return `<${name}></${name}>`;
          }
       }
+   } else if (attrs.length && children.length) {
+      content.push(`<${name} ${attrs.join(' ')}>`);
+      content.push(joinContent(name, attributes, children));
+      content.push(`</${name}>`);
+   } else if (attrs.length) {
+      if (SelfClosingElementNames.includes(name)) {
+         content.push(`<${name} ${attrs.join(' ')}/>`);
+      } else {
+         content.push(`<${name} ${attrs.join(' ')}></${name}>`);
+      }
+   } else {
+      content.push(`<${name}>`);
+      content.push(joinContent(name, attributes, children));
+      content.push(`</${name}>`);
    }
-   return lodash.flatten(content).join('');
+   return joinContent(name, attributes, content);
+}
+
+function isMeta(attributes, metaName) {
+   if (!attributes.meta) {
+      return false;
+   } else if (lodash.isString(attributes.meta)) {
+      return attributes.meta === metaName;
+   } else if (lodash.isArray(attributes.meta)) {
+      return attributes.meta.includes(metaName);
+   } else {
+      throw {message: 'Meta type: ' + typeof attributes.meta, attributes};
+   }
+}
+
+function joinContent(name, attributes, ...children) {
+   children = lodash.flatten(children);
+   if (name === 'pre') {
+      return children.join('\n');
+   } else {
+      return children.join('');
+   }
 }
 
 function _style(name, style, ...children) {
@@ -155,16 +215,23 @@ export function createStyleElements() {
    }, {});
 }
 
-export function createOptionalStyleElements() {
+export function createMetaElements() {
    return ElementNames.reduce((result, name) => {
-      result[name] = (style, ...args) => element(name, {meta: 'optional', style}, ...args);
+      result[name] = (meta, attributes, ...args) => element(name, Object.assign({meta}, attributes), ...args);
       return result;
    }, {});
 }
 
-export function createOptionalContentElements() {
+export function createMetaStyleElements(meta) {
    return ElementNames.reduce((result, name) => {
-      result[name] = (...args) => element(name, {meta: 'optional'}, ...args);
+      result[name] = (style, ...args) => element(name, {meta, style}, ...args);
+      return result;
+   }, {});
+}
+
+export function createMetaContentElements(meta) {
+   return ElementNames.reduce((result, name) => {
+      result[name] = (...args) => element(name, {meta}, ...args);
       return result;
    }, {});
 }
@@ -180,9 +247,10 @@ export function createContentElements() {
 export function assignDeps(g) {
    g.He = createElements();
    g.Hs = createStyleElements();
-   g.Hso = createOptionalStyleElements();
+   g.Hm = createMetaElements();
+   g.Hso = createMetaStyleElements('optional');
    g.Hc = createContentElements();
-   g.Hco = createOptionalContentElements();
+   g.Hco = createMetaContentElements('optional');
    g.Hx = module.exports;
    g.html = html;
 }

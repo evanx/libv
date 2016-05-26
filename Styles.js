@@ -35,6 +35,10 @@ function createCssKeyRegexString() {
 
 // exports
 
+export function meta(meta, style) {
+   return {meta, style};
+}
+
 export function renderStyles(object) {
    const styles = renderKeys(object, 'root');
    logger.debug('styles', styles);
