@@ -8,8 +8,8 @@ const SelfClosingElementNames = Strings.splitSpace(`
 
 const ElementNames = Strings.splitSpace(`
    html head meta link script body
-   header nav h1 h2 h3 h4 h5 h6
-   section article aside
+   header footer nav section article aside
+   h1 h2 h3 h4 h5 h6
    table thead tbody th tr td
    div span pre p a hr br img i b tt
    `
