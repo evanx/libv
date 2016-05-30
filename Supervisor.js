@@ -25,7 +25,11 @@ export default class Supervisor {
    async initComponent(componentName, componentModule, componentConfig) { // TODO support external modules
       assert(lodash.isString(componentName), 'component name');
       this.logger.info('initComponent', componentName, componentModule, componentConfig);
-      const meta = CsonFiles.readFileSync(`./${componentModule}/${componentModule}.cson`); // TODO support external modules
+      const meta = require(`./${componentModule}.config`);
+      this.logger.debug('meta', componentModule, meta);
+      assert(meta, 'meta: ' + componentModule);
+      this.logger.debug('meta', componentModule, meta, Object.keys(meta));
+      assert(meta.config, 'meta.config: ' + componentModule);
       componentConfig = Object.assign(Metas.getDefault(meta.config), componentConfig);
       componentConfig = Object.assign(componentConfig, Metas.getEnv(meta.config, componentName, process.env));
       this.logger.debug('config', componentName, meta.config, componentConfig);
