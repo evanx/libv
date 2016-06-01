@@ -15,6 +15,43 @@ const ElementNames = Strings.splitSpace(`
    `
 );
 
+// to be moved to Urls
+
+export function onClick(url) {
+   logger.debug('TBM');
+   if (!url) {
+      logger.debug('onClick empty');
+   } else if (url[0] === '/') {
+      return `window.location.pathname='${url}'`;
+   } else {
+      return `window.location='${url}'`;
+   }
+}
+
+// to be moved to Paths
+
+export function renderPath(path) {
+   logger.debug('TBM');
+   if (lodash.isArray(path)) {
+      return ['', ...path].join('/');
+   } else if (lodash.isString(path)) {
+      return path;
+   } else {
+      return '/routes';
+      logger.warn('path type', typeof path);
+   }
+}
+
+// util
+
+export function ms(meta, style) {
+   return {meta, style};
+}
+
+
+
+// experimental
+
 class Element {
 
    constructor({name, attributes, children}) {
@@ -31,6 +68,9 @@ class HtmlElement {
       return '';
    }
 }
+
+
+// html template literal function
 
 export function html(strings, ...values) {
    strings = strings.map(string => string.replace(/^\s*\n\s*/, ''));
@@ -82,24 +122,8 @@ export function html(strings, ...values) {
    }, previousString);
 }
 
-export function ms(meta, style) {
-   return {meta, style};
-}
 
-export function onClick(path) {
-   return `window.location.pathname='${path}'`;
-}
-
-export function renderPath(path) {
-   if (lodash.isArray(path)) {
-      return ['', ...path].join('/');
-   } else if (lodash.isString(path)) {
-      return path;
-   } else {
-      return '/routes';
-      logger.warn('path type', typeof path);
-   }
-}
+// element renderer
 
 export function element(name, attributes, ...args) {
    const content = [];
