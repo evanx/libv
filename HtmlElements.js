@@ -240,6 +240,11 @@ export function onClick(url) {
    const parts = [`document.body.style.opacity=.4`];
    if (!url) {
       logger.debug('onClick empty');
+   } else if (/^https?:\/\//.test(url)) {
+      return renderScript(
+         ...parts,
+         `window.location='${renderPath(url)}'`
+      );
    } else if (url[0] === '/') {
       return renderScript(
          ...parts,
@@ -248,7 +253,7 @@ export function onClick(url) {
    } else {
       return renderScript(
          ...parts,
-         `window.location='${renderPath(url)}'`
+         `window.location.pathname='/${renderPath(url)}'`
       );
    }
 }
