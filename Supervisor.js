@@ -71,7 +71,11 @@ export default class Supervisor {
          await component.init(componentState);
       }
       if (meta.singleton) {
-         Object.assign(global[meta.singleton.key], lodash.pick(component, meta.singleton.pick));
+         const assign = meta.singleton.pick
+         ? lodash.pick(component, meta.singleton.pick)
+         : component;
+         this.logger.info('assign global', meta.singleton.key, Loggers.keys(component));
+         global[meta.singleton.key] = component;
       }
       this.initedComponents.push(component);
       this.components[componentName] = component;

@@ -91,6 +91,7 @@ function assignDeps(g) {
    g.Asserts = require('./Asserts');
    g.ClassPreprocessor = require('./ClassPreprocessor');
    g.CsonFiles = require('./CsonFiles');
+   g.Express = require('./Express');
    g.Files = require('./Files');
    g.KeyArrays = require('./KeyArrays');
    g.Metas = require('./Metas');
@@ -129,7 +130,7 @@ function getSupervisorMeta() {
       availableComponents: componentsMeta.components,
       components: componentsConfig.components
    });
-   return Object.assign(CsonFiles.readFileSync('./lib/Supervisor.cson'), {config: config});
+   return Object.assign(CsonFiles.readFileSync('./lib/Supervisor.cson'), {config});
 }
 
 function getComponentsConfig() {
