@@ -87,10 +87,12 @@ redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
 
 function assignDeps(g) {
    g.Loggers = require('./Loggers');
+   g.Arrays = require('./Arrays');
    g.Asserts = require('./Asserts');
    g.ClassPreprocessor = require('./ClassPreprocessor');
    g.CsonFiles = require('./CsonFiles');
    g.Files = require('./Files');
+   g.KeyArrays = require('./KeyArrays');
    g.Metas = require('./Metas');
    g.Millis = require('./Millis');
    g.Objects = require('./Objects');

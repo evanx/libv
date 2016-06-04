@@ -48,6 +48,9 @@ export default class Supervisor {
       if (Metas.isSpecType(meta, 'icp')) {
          componentModule = await ClassPreprocessor.buildSync(componentModule + '.js', Object.keys(componentState));
       }
+      if (meta.singleton) {
+         global[meta.singleton.key] = {};
+      }
       let componentClass = require('./' + componentModule);
       if (componentClass.default) {
          componentClass = componentClass.default;
@@ -66,6 +69,9 @@ export default class Supervisor {
       if (component.init) {
          assert(lodash.isFunction(component.init), 'init function: ' + componentName);
          await component.init(componentState);
+      }
+      if (meta.singleton) {
+         Object.assign(global[meta.singleton.key], lodash.pick(component, meta.singleton.pick));
       }
       this.initedComponents.push(component);
       this.components[componentName] = component;
@@ -92,7 +98,7 @@ export default class Supervisor {
    async scheduleComponents() {
       this.logger.debug('scheduleComponents length', Object.keys(this.components));
       for (const component of [... this.initedComponents]) {
-         this.logger.debug('scheduleComponents component', component.name, Object.keys(component.config));
+         this.logger.debug('scheduleComponents component', component.name);
          if (component.config.scheduledTimeout) {
             this.scheduleComponentTimeout(component);
          }

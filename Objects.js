@@ -9,3 +9,8 @@ export function kv(object, key) {
    assert.equal(typeof key, 'string');
    return {key, value: object[key]};
 }
+
+export function assignKey(object, key, value) {
+   object[key] = value;
+   return object;
+}

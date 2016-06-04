@@ -91,12 +91,12 @@ export function html(strings, ...values) {
 
 // element renderer
 
-export function element(name, attributes, ...args) {
+export function element(name, attributes, ...children) {
    const content = [];
    if (!attributes) {
       return ['<', name, '/>'].join('');
    }
-   const children = lodash.compact(lodash.flatten(args));
+   children = lodash.compact(lodash.flatten(children));
    if (!lodash.isObject(attributes)) {
       throw {message: 'attributes: ' + typeof attributes, context: {name, attributes, children}};
    }
@@ -158,6 +158,7 @@ function renderElementChildren(name, attributes, attrs, ...children) {
 }
 
 function isMeta(attributes, metaName) {
+   logger.debug('isMeta', attributes, metaName);
    if (!attributes.meta) {
       return false;
    } else if (lodash.isString(attributes.meta)) {
@@ -178,58 +179,9 @@ function joinContent(name, attributes, ...children) {
    }
 }
 
-function _style(name, style, ...children) {
-   logger.debug('_style', name, style, children);
-   if (typeof style !== 'string') {
-      throw {message: 'style type: ' + typeof style, name, style, children};
-   } else {
-      return element(name, {style}, ...children);
-   }
-}
-
-function _content(name, ...children) {
-   return element(name, {}, ...children);
-}
-
-export function createElements() {
+export function createElements(fn) {
    return ElementNames.reduce((result, name) => {
-      result[name] = (...args) => element(name, ...args);
-      return result;
-   }, {});
-}
-
-export function createStyleElements() {
-   return ElementNames.reduce((result, name) => {
-      result[name] = (...args) => _style(name, ...args);
-      return result;
-   }, {});
-}
-
-export function createMetaElements() {
-   return ElementNames.reduce((result, name) => {
-      result[name] = (meta, attributes, ...args) => element(name, Object.assign({meta}, attributes), ...args);
-      return result;
-   }, {});
-}
-
-export function createMetaStyleElements(meta) {
-   return ElementNames.reduce((result, name) => {
-      result[name] = (style, ...args) => element(name, {meta, style}, ...args);
-      return result;
-   }, {});
-}
-
-export function createMetaContentElements(meta) {
-   return ElementNames.reduce((result, name) => {
-      result[name] = (...args) => element(name, {meta}, ...args);
-      return result;
-   }, {});
-}
-
-
-export function createContentElements() {
-   return ElementNames.reduce((result, name) => {
-      result[name] = (...args) => _content(name, ...args);
+      result[name] = (...args) => fn(name, ...args);
       return result;
    }, {});
 }
@@ -281,13 +233,27 @@ export function ms(meta, style) {
 
 //
 
+function assignElements(r) {
+   Object.assign(r, createElements((name, ...args) => element(name, ...args)));
+   return r;
+}
+
 export function assignDeps(g) {
-   g.He = createElements();
-   g.Hs = createStyleElements();
-   g.Hm = createMetaElements();
-   g.Hso = createMetaStyleElements('optional');
-   g.Hc = createContentElements();
-   g.Hco = createMetaContentElements('optional');
+   g.He = assignElements({});
+   g.Hs = createElements((name, style, ...children) => {
+      logger.debug('_style', name, style, children);
+      if (typeof style !== 'string') {
+         throw {message: 'style type: ' + typeof style, name, style, children};
+      } else {
+         return element(name, {style}, ...children);
+      }
+   });
+   g.Hm = createElements((name, meta, attributes, ...args) => element(name, Object.assign({meta}, attributes), args));
+   g.Hso = createElements((name, style, ...args) => element(name, Object.assign({meta: 'optional', style}), args));
+   g.Hms = createElements((name, meta, style, ...args) => element(name, Object.assign({meta, style}), args));
+   g.Hc = createElements((name, ...args) => element(name, {}, args));
+   g.Hmc = createElements((name, meta, ...args) => element(name, {meta}, args));
+   g.Hco = createElements((name, ...args) => element(name, {meta: 'optional'}, args));
    g.Hx = module.exports;
    g.html = html;
 }

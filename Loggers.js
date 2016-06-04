@@ -86,4 +86,14 @@ export function create(filename, level) {
    }
    level = level || global.loggerLevel;
    return new Logger({name, level});
-};
+}
+
+export function keys(object, label) {
+   if (!object) {
+      return 'Empty:keys';
+   } else if (label) {
+      return `${label}:{${Object.keys(object).join(', ')}}`;
+   } else {
+      return Object.keys(object).join(' ');
+   }
+}
