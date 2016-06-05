@@ -40,7 +40,7 @@ export function meta(meta, style) {
 }
 
 export function renderStyles(object) {
-   const styles = renderKeys(object, 'root');
+   const styles = renderKeys(object, []);
    logger.debug('styles', styles);
    return styles;
 }
@@ -113,26 +113,26 @@ export function renderUserAgentStylesheet(userAgent, object) {
    .join('\n');
 }
 
-export function renderKeys(object, key) {
+export function renderKeys(object, parentKeys) {
    if (Object.keys(object).filter(key => isCssKey(key)).length) {
       return lodash.compact(Object.keys(object).map(key => {
-         return {key: renderKey(key), value: renderValue(object[key], key)};
+         return {key: renderKey(key), value: renderValue(object[key], key, parentKeys)};
       }).map(entry => {
          if (entry.key && lodash.isString(entry.value)) {
             return `${entry.key}:${entry.value}`
          } else {
             logger.warn('renderKeys', entry.key, typeof entry.value);
          }
-      })).join(';');
+      })).join(';') + ';-rh-key:' + lodash.compact(parentKeys).join('-');
    } else {
       return Object.keys(object).reduce((result, key) => {
-         result[key] = renderValue(object[key], key);
+         result[key] = renderValue(object[key], key, parentKeys);
          return result;
       }, {});
    }
 }
 
-export function renderValue(value, key) {
+export function renderValue(value, key, parentKeys) {
    if (!Values.isDefined(value)) {
       logger.debug('renderValue empty', key);
       return '';
@@ -147,9 +147,9 @@ export function renderValue(value, key) {
    } else if (lodash.isString(value)) {
       return value;
    } else if (lodash.isArray(value)) {
-      return value.map(v => renderValue(v, key)).join(' ');
+      return value.map(v => renderValue(v, key, parentKeys)).join(' ');
    } else if (lodash.isObject(value)) {
-      return renderKeys(value);
+      return renderKeys(value, parentKeys.concat([key]));
    } else {
       throw {message: 'Unsupported type: ' + typeof value, key};
    }
