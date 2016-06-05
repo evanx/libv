@@ -88,10 +88,9 @@ export function html(strings, ...values) {
    }, previousString);
 }
 
-
 // element renderer
 
-export function element(name, attributes, ...children) {
+export function render(name, attributes, ...children) { // TODO
    const content = [];
    if (!attributes) {
       return ['<', name, '/>'].join('');
@@ -100,16 +99,19 @@ export function element(name, attributes, ...children) {
    if (!lodash.isObject(attributes)) {
       throw {message: 'attributes: ' + typeof attributes, context: {name, attributes, children}};
    }
-   const attrs = Objects.kvs(attributes)
-   .filter(kv => kv.key !== 'meta')
-   .filter(kv => kv.value && kv.value.toString())
-   .map(kv => ({key: kv.key, value: kv.value.toString()}))
-   .map(kv => `${kv.key}="${kv.value}"`);
-   logger.debug('element', name, attrs);
-   return renderElements(name, attributes, attrs, children);
+   const attrs = renderAttributes(attributes);
+   logger.debug('render', name, attrs);
+   return renderChildrenRepeat(name, attributes, attrs, children);
 }
 
-function renderElements(name, attributes, attrs, children) {
+function renderAttributes(attributes) {
+   return Object.keys(attributes)
+   .filter(key => !['meta'].includes(key))
+   .filter(key => attributes[key])
+   .map(key => `${key}="${attributes[key].toString()}"`);
+}
+
+function renderChildrenRepeat(name, attributes, attrs, children) {
    if (isMeta(attributes, 'repeat')) {
       if (!children.length) {
          return '';
@@ -119,15 +121,15 @@ function renderElements(name, attributes, attrs, children) {
          return '';
       } else {
          return lodash.flatten(children).map(child => {
-            return renderElementChildren(name, attributes, attrs, child);
+            return renderChildren(name, attributes, attrs, child);
          }).join('\n');
       }
    } else {
-      return renderElementChildren(name, attributes, attrs, children);
+      return renderChildren(name, attributes, attrs, children);
    }
 }
 
-function renderElementChildren(name, attributes, attrs, ...children) {
+function renderChildren(name, attributes, attrs, ...children) {
    const content = [];
    children = lodash.flatten(children);
    if (!attrs.length && !children.length) {
@@ -179,7 +181,7 @@ function joinContent(name, attributes, ...children) {
    }
 }
 
-export function createElements(fn) {
+export function renders(fn) {
    return ElementNames.reduce((result, name) => {
       result[name] = (...args) => fn(name, ...args);
       return result;
@@ -231,29 +233,64 @@ export function ms(meta, style) {
    return {meta, style};
 }
 
+// plain
+
+export function plain(name, attributes, content) {
+   if (['style'].includes(name)) {
+      return '';
+   }
+   if (lodash.isEmpty(content)) {
+      return '';
+   }
+   if (lodash.isString(content)) {
+      if (name === 'a') {
+         assert(attributes.href, 'href');
+         return [content, '  ' + attributes.href].join('\n');
+      }
+      return content;
+   }
+   if (lodash.isArray(content)) {
+      if (['pre'].includes(name)) {
+         return content.map(element => plain({}, content)).join('\n');
+      } else {
+         return content.map(element => plain({}, content)).join('\n');
+      }
+   }
+   if (lodash.isObject(element)) {
+      if (element.url && element.content) {
+         return [element.content, element.url].join('\n');
+      } else {
+         logger.debug('render object', typeof element);
+         return '';
+      }
+   }
+   return content.toString();
+}
+
 //
 
-function assignElements(r) {
-   Object.assign(r, createElements((name, ...args) => element(name, ...args)));
-   return r;
+function assignElements($, delegate) {
+   Object.assign($, renders((name, ...args) => delegate(name, ...args)));
+   return $;
 }
 
 export function assignDeps(g) {
-   g.He = assignElements({});
-   g.Hs = createElements((name, style, ...children) => {
+   g.He = assignElements({}, render);
+   g.Hp = assignElements({}, plain);
+   g.Hs = renders((name, style, ...children) => {
       logger.debug('_style', name, style, children);
       if (typeof style !== 'string') {
          throw {message: 'style type: ' + typeof style, name, style, children};
       } else {
-         return element(name, {style}, ...children);
+         return render(name, {style}, ...children);
       }
    });
-   g.Hm = createElements((name, meta, attributes, ...args) => element(name, Object.assign({meta}, attributes), args));
-   g.Hso = createElements((name, style, ...args) => element(name, Object.assign({meta: 'optional', style}), args));
-   g.Hms = createElements((name, meta, style, ...args) => element(name, Object.assign({meta, style}), args));
-   g.Hc = createElements((name, ...args) => element(name, {}, args));
-   g.Hmc = createElements((name, meta, ...args) => element(name, {meta}, args));
-   g.Hco = createElements((name, ...args) => element(name, {meta: 'optional'}, args));
+   g.Hm = renders((name, meta, attributes, ...args) => render(name, Object.assign({meta}, attributes), args));
+   g.Hso = renders((name, style, ...args) => render(name, Object.assign({meta: 'optional', style}), args));
+   g.Hms = renders((name, meta, style, ...args) => render(name, Object.assign({meta, style}), args));
+   g.Hc = renders((name, ...args) => render(name, {}, args));
+   g.Hmc = renders((name, meta, ...args) => render(name, {meta}, args));
+   g.Hco = renders((name, ...args) => render(name, {meta: 'optional'}, args));
    g.Hx = module.exports;
    g.html = html;
 }
