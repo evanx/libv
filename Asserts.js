@@ -55,13 +55,5 @@ exports = {
       assert(lodash.isArray(value), `array: ` + name);
       assert(!lodash.isEmpty(value), `empty: ` + name);
       return value;
-   },
-   hasOwnProperty(object, key) {
-      if (object.hasOwnProperty(key)) throw new ValidationError(`missing: ${key}`);
-   },
-   hasFunction(object, key) {
-      if (object.hasOwnProperty(key)) throw new ValidationError(`missing: ${key}`);
-      const value = object[key];
-      if (!lodash.isFunction(value)) throw new ValidationError(`missing function: ${key}`);
    }
 };

@@ -39,6 +39,8 @@ function assignErrors(g) {
       if (args.length === 1) {
          if (args[0].message) {
             var err = args[0];
+            this.code = err.code;
+            this.status = err.status;
             this.message = err.message;
             this.hint = err.hint;
             this.hints = err.hints;
@@ -88,6 +90,7 @@ redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
 function assignDeps(g) {
    g.Loggers = require('./Loggers');
    g.Arrays = require('./Arrays');
+   g.AssertObject = require('./AssertObject');
    g.Asserts = require('./Asserts');
    g.ClassPreprocessor = require('./ClassPreprocessor');
    g.CsonFiles = require('./CsonFiles');
@@ -100,6 +103,7 @@ function assignDeps(g) {
    g.Promises = require('./Promises');
    g.Requests = require('./Requests');
    g.Strings = require('./Strings');
+   g.Seconds = require('./Seconds');
    g.Values = require('./Values');
    if (true) { // TODO
       assignDepsOptional(g);
