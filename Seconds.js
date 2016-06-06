@@ -37,12 +37,16 @@ const that = {
          return value;
       }
    },
-   parseKeyDefault(object, key, defaultValue) {
+   parsePropDefault(object, key, defaultValue) {
       try {
          return that.parse(object[key], defaultValue);
       } catch (err) {
          throw new ValidationError(`${key}: ${err.message}`);
       }
+   },
+   parseOptionalKeyDefault(object, key, defaultValue) {
+      if (!object) return defaultValue;
+      return that.parsePropDefault(object, key, defaultValue);
    },
    fromMinutes(minutes) {
       return minutes * factors.m;

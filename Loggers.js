@@ -97,3 +97,19 @@ export function keys(object, label) {
       return Object.keys(object).join(' ');
    }
 }
+
+export function value(value, key) {
+   return [key, '=', value].join('');
+}
+
+export function values(object, label) {
+   if (!object) {
+      return 'Empty:keys';
+   }
+   const message = Object.keys(object).map(key => [key, value].join(':')).join(' ');
+   if (label) {
+      return `${label}:{${message}}`;
+   } else {
+      return message;
+   }
+}
