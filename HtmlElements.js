@@ -129,17 +129,19 @@ function renderChildrenRepeat(name, attributes, attrs, children) {
    }
 }
 
-function renderChildren(name, attributes, attrs, ...children) {
+function renderChildren(name, attributes, attrs, children) {
    const content = [];
    children = lodash.flatten(children);
-   if (!attrs.length && !children.length) {
+   if (!children.length) {
       if (isMeta(attributes, 'optional')) {
+         return '';
+      }
+   }
+   if (!attrs.length && !children.length) {
+      if (SelfClosingElementNames.includes(name)) {
+         return `<${name}/>`;
       } else {
-         if (SelfClosingElementNames.includes(name)) {
-            return `<${name}/>`;
-         } else {
-            return `<${name}></${name}>`;
-         }
+         return `<${name}></${name}>`;
       }
    } else if (attrs.length && children.length) {
       content.push(`<${name} ${attrs.join(' ')}>`);
@@ -190,24 +192,27 @@ export function renders(fn) {
 
 // util
 
-export function onClick(url) {
-   const parts = [`document.body.style.opacity=.4`];
-   if (!url) {
+export function onClick({href, target}) {
+   let parts = [];
+   if (!target) {
+      parts.push(`document.body.style.opacity=.4`);
+   }
+   if (!href) {
       logger.debug('onClick empty');
-   } else if (/^https?:\/\//.test(url)) {
+   } else if (/^https?:\/\//.test(href)) {
       return renderScript(
          ...parts,
-         `window.location='${renderPath(url)}'`
+         `window.location='${renderPath(href)}'`
       );
-   } else if (url[0] === '/') {
+   } else if (href[0] === '/') {
       return renderScript(
          ...parts,
-         `window.location.pathname='${renderPath(url)}'`
+         `window.location.pathname='${renderPath(href)}'`
       );
    } else {
       return renderScript(
          ...parts,
-         `window.location.pathname='/${renderPath(url)}'`
+         `window.location.pathname='/${renderPath(href)}'`
       );
    }
 }
