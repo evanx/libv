@@ -16,6 +16,9 @@ const factors = {
 };
 
 var that = {
+   now() {
+      return new Date().getTime();
+   },
    format(millis) { // TODO deprecate
       return that.formatDuration(millis);
    },

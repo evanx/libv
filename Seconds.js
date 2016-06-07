@@ -12,6 +12,9 @@ const factors = {
 
 const that = {
    factors: factors,
+   now() {
+      return Math.ceil(new Date().getTime()/1000);
+   },
    format(seconds) {
       if (seconds < factors.m) {
          return '' + seconds + 's';
