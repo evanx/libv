@@ -24,6 +24,10 @@ const that = {
       }
    },
    parse(string, defaultValue) {
+      if (!string) {
+         logger.warn('parse empty', defaultValue, string);
+         return defaultValue;
+      }
       const [value, factorKey] = string.match(/^([0-9]+)([a-z]?)$/) || [];
       if (!Values.isDefined(value)) {
          throw new ValidationError(`invalid seconds`);
