@@ -46,6 +46,7 @@ const that = {
    },
    parseOptionalKeyDefault(object, key, defaultValue) {
       if (!object) return defaultValue;
+      if (!Values.isDefined(object[key])) return defaultValue;
       return that.parsePropDefault(object, key, defaultValue);
    },
    fromMinutes(minutes) {
@@ -56,6 +57,9 @@ const that = {
    },
    fromDays(days) {
       return days * factors.d;
+   },
+   toDays(seconds) {
+      return Math.ceil(seconds/factors.d);
    },
    assert(seconds, message) {
       message = message + ': ' + seconds;

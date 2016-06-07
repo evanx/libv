@@ -49,7 +49,7 @@ async function contentOptions(options) {
    return content;
 }
 
-export async function head(options) {
+export async function request(options) {
    const [response] = await createPromise(options);
    return response;
 }
