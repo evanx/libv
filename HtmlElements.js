@@ -15,6 +15,7 @@ const ElementNames = Strings.splitSpace(`
    `
 );
 
+export const MessageTagRegex = /<\/?(b|tt|i|code|pre)>/g;
 
 // experimental
 
